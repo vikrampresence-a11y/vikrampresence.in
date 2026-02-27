@@ -19,6 +19,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ThankYouPage from './pages/ThankYouPage';
+import MyProductsPage from './pages/MyProductsPage';
 import ProtectedRoute from '@/components/layout/ProtectedRoute.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import { PaymentProvider } from '@/context/PaymentContext.jsx';
@@ -45,7 +46,15 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
-                
+                <Route
+                  path="/my-products"
+                  element={
+                    <ProtectedRoute>
+                      <MyProductsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Policy Routes */}
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
@@ -54,15 +63,15 @@ function App() {
                 {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
-                
+
                 {/* Admin Routes */}
-                <Route 
-                  path="/admin" 
+                <Route
+                  path="/admin"
                   element={
                     <ProtectedRoute requireAdmin={true}>
                       <AdminDashboard />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
               </Routes>
             </main>

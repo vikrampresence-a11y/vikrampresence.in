@@ -70,6 +70,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Google OAuth Login via PocketBase
+   * Opens a popup window for Google sign-in.
+   * PocketBase handles the OAuth2 flow and creates/links the user automatically.
+   */
+  const loginWithGoogle = async () => {
+    try {
+      const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+
+      // Update profile picture from Google if available
+      const meta = authData.meta;
+      if (meta?.avatarUrl && authData.record) {
+        try {
+          await pb.collection('users').update(authData.record.id, {
+            profilePicture: meta.avatarUrl,
+            name: authData.record.name || meta.name || '',
+          }, { $autoCancel: false });
+        } catch (updateErr) {
+          // Non-critical — profile picture update failed, proceed anyway
+          console.warn('Could not update profile picture:', updateErr);
+        }
+      }
+
+      setCurrentUser(authData.record);
+      return authData;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const signupUser = async (data) => {
     try {
       const record = await pb.collection('users').create(data, { $autoCancel: false });
@@ -87,14 +117,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      currentUser, 
-      currentAdmin, 
-      loginAdmin, 
-      loginUser, 
-      signupUser, 
-      logout, 
-      isLoading, 
+    <AuthContext.Provider value={{
+      currentUser,
+      currentAdmin,
+      loginAdmin,
+      loginUser,
+      loginWithGoogle,
+      signupUser,
+      logout,
+      isLoading,
       isAuthenticated: !!currentUser || !!currentAdmin,
       isAdmin: !!currentAdmin
     }}>

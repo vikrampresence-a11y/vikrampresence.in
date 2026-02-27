@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, User } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, User, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext.jsx';
 import AnimatedLogo from '../shared/AnimatedLogo.jsx';
+import AuthButton from '@/components/auth/AuthButton.jsx';
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -11,8 +13,10 @@ const Header = () => {
   const {
     isAuthenticated,
     isAdmin,
+    currentUser,
     logout
   } = useAuth();
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -20,13 +24,16 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
   const navLinks = [{
     name: 'Home',
     path: '/'
@@ -46,6 +53,7 @@ const Header = () => {
     name: 'Contact',
     path: '/contact'
   }];
+
   return <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-black/95 backdrop-blur-md shadow-lg shadow-white/5 py-4' : 'bg-transparent py-6'}`}>
     <nav className="container mx-auto px-6">
       <div className="flex items-center justify-between">
@@ -67,20 +75,8 @@ const Header = () => {
 
           <div className="w-px h-4 bg-white/20 mx-2"></div>
 
-          {!isAuthenticated ? <div className="flex items-center space-x-4">
-            <Link to="/login" className="text-white/50 hover:text-[#FFD700] transition-colors text-[10px] uppercase tracking-widest">
-              Admin Login
-            </Link>
-          </div> : <div className="flex items-center space-x-4">
-            {isAdmin ? <Link to="/admin" className="flex items-center text-[#FFD700] hover:text-white transition-colors text-xs uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,215,0,0.5)]">
-              <LayoutDashboard size={14} className="mr-1" /> Dashboard
-            </Link> : <span className="flex items-center text-white/80 text-xs uppercase tracking-widest">
-              <User size={14} className="mr-1" /> Account
-            </span>}
-            <button onClick={handleLogout} className="flex items-center text-white/50 hover:text-red-400 transition-colors text-xs uppercase tracking-widest">
-              <LogOut size={14} className="mr-1" /> Logout
-            </button>
-          </div>}
+          {/* Auth Button — replaces old "Admin Login" text */}
+          <AuthButton />
         </div>
 
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-white hover:text-[#FFD700] transition-colors z-50 relative" aria-label="Toggle mobile menu">
@@ -99,11 +95,20 @@ const Header = () => {
 
           <div className="w-16 h-px bg-white/20 mx-auto my-4"></div>
 
-          {!isAuthenticated ? <Link to="/login" className="text-white/50 text-sm uppercase tracking-widest hover:text-[#FFD700] transition-colors">
-            Admin Login
-          </Link> : <>
+          {!isAuthenticated ? (
+            <Link
+              to="/login"
+              className="inline-flex items-center justify-center mx-auto px-8 py-3 border border-[#ffcc00] text-[#ffcc00] rounded-full text-sm uppercase tracking-widest font-bold hover:bg-[#ffcc00] hover:text-black transition-all duration-300"
+            >
+              Sign In
+            </Link>
+          ) : <>
             {isAdmin && <Link to="/admin" className="text-[#FFD700] text-xl uppercase tracking-widest hover:text-white transition-colors drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]">
               Dashboard
+            </Link>}
+            {!isAdmin && currentUser && <Link to="/my-products" className="text-white/80 text-xl uppercase tracking-widest hover:text-[#FFD700] transition-colors flex items-center justify-center gap-2">
+              <ShoppingBag size={20} />
+              My Products
             </Link>}
             <button onClick={handleLogout} className="text-white/50 text-xl uppercase tracking-widest hover:text-red-400 transition-colors">
               Logout

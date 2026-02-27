@@ -71,13 +71,32 @@ const HomePage = () => {
         <meta name="description" content="Premium ebooks and courses for building clarity, discipline, and absolute confidence." />
       </Helmet>
 
-      <div className="bg-[#020202] min-h-screen text-white selection:bg-[#FFD700] selection:text-black font-sans">
+      <div className="min-h-screen text-white selection:bg-[#FFD700] selection:text-black font-sans relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0a0014 0%, #030712 25%, #0c0a1a 50%, #020617 75%, #0a0014 100%)' }}>
+
+        {/* Animated Background Orbs */}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+          <div className="hero-orb hero-orb-1"></div>
+          <div className="hero-orb hero-orb-2"></div>
+          <div className="hero-orb hero-orb-3"></div>
+          <div className="hero-orb hero-orb-4"></div>
+          {/* Subtle grid overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'linear-gradient(rgba(255,215,0,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.015) 1px, transparent 1px)',
+            backgroundSize: '80px 80px'
+          }}></div>
+          {/* Radial vignette */}
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)'
+          }}></div>
+        </div>
 
         {/* 1. Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#020202] via-[#0a0a0a] to-[#020202]"></div>
-          </div>
+          {/* Hero-specific top glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full z-0" style={{
+            background: 'radial-gradient(ellipse, rgba(255,215,0,0.06) 0%, rgba(139,92,246,0.03) 40%, transparent 70%)',
+            filter: 'blur(80px)'
+          }}></div>
 
           <div className="relative z-10 container mx-auto px-6 text-center flex flex-col items-center justify-center">
 
@@ -87,12 +106,13 @@ const HomePage = () => {
               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
               className="relative w-48 h-48 mb-8 flex items-center justify-center"
             >
-              <div className="absolute inset-0 rounded-full border border-[#FFD700]/10 shadow-[0_0_30px_rgba(255,215,0,0.1)]"></div>
-              <div className="absolute inset-4 rounded-full border border-orange-500/10 shadow-[0_0_20px_rgba(255,165,0,0.15)]"></div>
+              <div className="absolute inset-0 rounded-full border border-[#FFD700]/15 shadow-[0_0_40px_rgba(255,215,0,0.08)]"></div>
+              <div className="absolute inset-4 rounded-full border border-violet-500/10 shadow-[0_0_25px_rgba(139,92,246,0.1)]"></div>
               <motion.div
                 animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#FFD700]/60 to-orange-600/40 blur-[20px]"
+                className="w-24 h-24 rounded-full blur-[20px]"
+                style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.6), rgba(139,92,246,0.4), rgba(255,165,0,0.3))' }}
               ></motion.div>
             </motion.div>
 
@@ -107,7 +127,7 @@ const HomePage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="flex flex-col sm:flex-row items-center gap-6 mb-12 w-full max-w-md mx-auto sm:max-w-none sm:w-auto">
               <Link to="/ebooks" className="w-full sm:w-auto group relative px-16 py-5 bg-transparent border border-[#FFD700]/50 rounded-full overflow-hidden transition-all duration-500 hover:border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.5)]">
                 <div className="absolute inset-0 bg-[#FFD700]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
-                <span className="relative text-[#FFD700] font-bold uppercase tracking-[0.2em] text-sm group-hover:dark:text-[#FFD700]">EBOOKS</span>
+                <span className="relative text-[#FFD700] font-bold uppercase tracking-[0.2em] text-sm">EBOOKS</span>
               </Link>
 
               <Link to="/courses" className="w-full sm:w-auto group relative px-16 py-5 bg-transparent border border-[#FFD700]/50 rounded-full overflow-hidden transition-all duration-500 hover:border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.5)]">
@@ -115,16 +135,22 @@ const HomePage = () => {
                 <span className="relative text-[#FFD700] font-bold uppercase tracking-[0.2em] text-sm">COURSES</span>
               </Link>
             </motion.div>
+
           </div>
         </section>
 
         {/* 2. Explore Shop Flow */}
-        <section className="py-24 bg-[#050505] relative border-t border-white/5">
-          <div className="container mx-auto px-6 text-center">
+        <section className="py-24 relative border-t border-white/5">
+          {/* Section accent glow */}
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full z-0" style={{
+            background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)',
+            filter: 'blur(60px)'
+          }}></div>
+          <div className="container mx-auto px-6 text-center relative z-10">
             <ScrollReveal>
               <button
                 onClick={() => setShowCategories(!showCategories)}
-                className="inline-flex items-center px-10 py-4 bg-white/5 border border-white/20 text-white font-medium uppercase tracking-widest text-sm rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+                className="inline-flex items-center px-10 py-4 bg-white/5 border border-white/20 text-white font-medium uppercase tracking-widest text-sm rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-300 backdrop-blur-sm"
               >
                 Explore Shop <ArrowRight size={16} className={`ml-3 transition-transform duration-300 ${showCategories ? 'rotate-90' : ''}`} />
               </button>
@@ -141,7 +167,7 @@ const HomePage = () => {
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
 
-                    <Link to="/ebooks" className="group p-8 rounded-2xl bg-[#0a0a0a] border border-white/5 hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] flex flex-col items-center">
+                    <Link to="/ebooks" className="group p-8 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.12)] flex flex-col items-center">
                       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:bg-[#FFD700]/10 transition-colors duration-500">
                         <Book className="text-white/70 group-hover:text-[#FFD700] transition-colors duration-500" size={28} />
                       </div>
@@ -149,7 +175,7 @@ const HomePage = () => {
                       <p className="text-gray-400 text-sm font-light">Deep written frameworks.</p>
                     </Link>
 
-                    <Link to="/courses" className="group p-8 rounded-2xl bg-[#0a0a0a] border border-white/5 hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] flex flex-col items-center">
+                    <Link to="/courses" className="group p-8 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.12)] flex flex-col items-center">
                       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:bg-[#FFD700]/10 transition-colors duration-500">
                         <MonitorPlay className="text-white/70 group-hover:text-[#FFD700] transition-colors duration-500" size={28} />
                       </div>
@@ -157,7 +183,7 @@ const HomePage = () => {
                       <p className="text-gray-400 text-sm font-light">Video modules and guides.</p>
                     </Link>
 
-                    <Link to="/shop" className="group p-8 rounded-2xl bg-[#0a0a0a] border border-white/5 hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] flex flex-col items-center">
+                    <Link to="/shop" className="group p-8 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-[#FFD700]/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.12)] flex flex-col items-center">
                       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:bg-[#FFD700]/10 transition-colors duration-500">
                         <Layers className="text-white/70 group-hover:text-[#FFD700] transition-colors duration-500" size={28} />
                       </div>
@@ -173,8 +199,13 @@ const HomePage = () => {
         </section>
 
         {/* 3. Featured Products */}
-        <section className="py-32 bg-[#020202]">
-          <div className="container mx-auto px-6">
+        <section className="py-32 relative">
+          {/* Section accent glow */}
+          <div className="absolute top-1/3 left-0 w-[600px] h-[600px] rounded-full z-0" style={{
+            background: 'radial-gradient(circle, rgba(255,215,0,0.03) 0%, transparent 60%)',
+            filter: 'blur(80px)'
+          }}></div>
+          <div className="container mx-auto px-6 relative z-10">
             <ScrollReveal>
               <div className="text-center mb-20">
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-4 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Featured Products</h2>
@@ -185,12 +216,12 @@ const HomePage = () => {
               {featuredProducts.map((product, index) => (
                 <ScrollReveal key={product.id} delay={index * 100}>
                   <Link to={`/product/${product.id}`} className="block group h-full">
-                    <div className="bg-[#080808] border border-white/5 rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700]/40 shadow-lg hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] h-full flex flex-col">
+                    <div className="bg-white/[0.03] backdrop-blur-md border border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700]/40 shadow-lg hover:shadow-[0_0_30px_rgba(255,215,0,0.12)] h-full flex flex-col">
                       <div className="aspect-[4/3] overflow-hidden relative">
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-black/20 transition-colors duration-500 z-10"></div>
                         <img src={getImageUrl(product)} alt={product.title} className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105" />
                         <div className="absolute top-4 left-4 z-20">
-                          <span className="px-4 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
+                          <span className="px-4 py-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
                             {product.type === 'ebook' ? 'Ebook' : 'Course'}
                           </span>
                         </div>

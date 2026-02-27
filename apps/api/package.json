@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
-    "razorpay": "^2.9.2",
-    "pocketbase": "^0.25.0",
+    "multer": "^2.0.2",
     "nodemailer": "^6.9.7",
-    "crypto": "^1.0.1",
+    "pocketbase": "^0.25.0",
+    "razorpay": "^2.9.2",
     "twilio": "^4.0.0"
   },
   "devDependencies": {

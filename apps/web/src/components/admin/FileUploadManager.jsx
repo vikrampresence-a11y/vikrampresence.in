@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import pb from '@/lib/pocketbaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { Upload, File, Trash2, Loader2 } from 'lucide-react';
+import EbookUploader from './EbookUploader';
 
 const FileUploadManager = () => {
   const [files, setFiles] = useState([]);
@@ -99,9 +100,9 @@ const FileUploadManager = () => {
           <form onSubmit={handleUpload} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Product</label>
-              <select 
-                value={uploadData.productId} 
-                onChange={(e) => setUploadData({...uploadData, productId: e.target.value})}
+              <select
+                value={uploadData.productId}
+                onChange={(e) => setUploadData({ ...uploadData, productId: e.target.value })}
                 className="w-full bg-black border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#FFD700] outline-none"
                 required
               >
@@ -111,9 +112,9 @@ const FileUploadManager = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">File Type</label>
-              <select 
-                value={uploadData.fileType} 
-                onChange={(e) => setUploadData({...uploadData, fileType: e.target.value})}
+              <select
+                value={uploadData.fileType}
+                onChange={(e) => setUploadData({ ...uploadData, fileType: e.target.value })}
                 className="w-full bg-black border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#FFD700] outline-none"
               >
                 <option value="pdf">PDF Document</option>
@@ -122,9 +123,9 @@ const FileUploadManager = () => {
               </select>
             </div>
             <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-[#FFD700] transition-colors cursor-pointer relative">
-              <input 
-                type="file" 
-                onChange={handleFileChange} 
+              <input
+                type="file"
+                onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 required
               />
@@ -134,15 +135,17 @@ const FileUploadManager = () => {
               </p>
               <p className="text-xs text-gray-500 mt-2">Max size: 100MB</p>
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isUploading || !uploadData.file}
               className="w-full bg-[#FFD700] text-black font-bold uppercase tracking-widest py-3 rounded-lg hover:bg-yellow-400 transition-colors disabled:opacity-50 flex justify-center items-center"
             >
-              {isUploading ? <Loader2 className="animate-spin mr-2" size={18} /> : 'Upload File'}
+              {isUploading ? <Loader2 className="animate-spin mr-2" size={18} /> : 'Upload File to Database'}
             </button>
           </form>
         </div>
+
+        <EbookUploader />
       </div>
 
       <div className="lg:col-span-2">
