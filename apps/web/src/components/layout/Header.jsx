@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, User, ShoppingBag } from 'lucide-react';
+import { Menu, X, ShoppingBag } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, useClerk } from '@clerk/clerk-react';
 import { useAuth } from '@/context/AuthContext.jsx';
 import AnimatedLogo from '../shared/AnimatedLogo.jsx';
 import AuthButton from '@/components/auth/AuthButton.jsx';
@@ -10,12 +11,8 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    isAuthenticated,
-    isAdmin,
-    currentUser,
-    logout
-  } = useAuth();
+  const { isAdmin, currentUser } = useAuth();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,8 +27,7 @@ const Header = () => {
   }, [location]);
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    signOut(() => navigate('/'));
   };
 
   const navLinks = [{
@@ -75,7 +71,7 @@ const Header = () => {
 
           <div className="w-px h-4 bg-white/20 mx-2"></div>
 
-          {/* Auth Button — replaces old "Admin Login" text */}
+          {/* Auth Button — Clerk-powered */}
           <AuthButton />
         </div>
 
@@ -95,14 +91,17 @@ const Header = () => {
 
           <div className="w-16 h-px bg-white/20 mx-auto my-4"></div>
 
-          {!isAuthenticated ? (
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center mx-auto px-8 py-3 border border-[#ffcc00] text-[#ffcc00] rounded-full text-sm uppercase tracking-widest font-bold hover:bg-[#ffcc00] hover:text-black transition-all duration-300"
-            >
-              Sign In
-            </Link>
-          ) : <>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button
+                className="inline-flex items-center justify-center mx-auto px-8 py-3 border border-[#ffcc00] text-[#ffcc00] rounded-full text-sm uppercase tracking-widest font-bold hover:bg-[#ffcc00] hover:text-black transition-all duration-300"
+              >
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
             {isAdmin && <Link to="/admin" className="text-[#FFD700] text-xl uppercase tracking-widest hover:text-white transition-colors drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]">
               Dashboard
             </Link>}
@@ -113,7 +112,7 @@ const Header = () => {
             <button onClick={handleLogout} className="text-white/50 text-xl uppercase tracking-widest hover:text-red-400 transition-colors">
               Logout
             </button>
-          </>}
+          </SignedIn>
         </div>
       </div>
     </nav>

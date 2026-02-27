@@ -1,133 +1,50 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import pb from '@/lib/pocketbaseClient';
+import React, { createContext, useContext } from 'react';
+import { useUser, useAuth as useClerkAuth, useClerk } from '@clerk/clerk-react';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+/**
+ * AuthProvider — thin wrapper around Clerk hooks.
+ * Maintains the same API shape that the rest of the app expects:
+ *   isAuthenticated, isAdmin, currentUser, currentAdmin, logout, isLoading
+ *
+ * Admin detection: set `role: "admin"` in Clerk Dashboard → Users → publicMetadata
+ */
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [currentAdmin, setCurrentAdmin] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+  const { getToken } = useClerkAuth();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      if (pb.authStore.isValid) {
-        if (pb.authStore.model?.collectionName === 'admins') {
-          setCurrentAdmin(pb.authStore.model);
-          setCurrentUser(null);
-        } else if (pb.authStore.model?.collectionName === 'users') {
-          setCurrentUser(pb.authStore.model);
-          setCurrentAdmin(null);
-        }
-      } else {
-        setCurrentAdmin(null);
-        setCurrentUser(null);
-      }
-      setIsLoading(false);
-    };
+  // Admin check via Clerk publicMetadata
+  const isAdmin = user?.publicMetadata?.role === 'admin';
 
-    checkAuth();
+  // Map Clerk user to the shape the app already uses
+  const currentUser = isSignedIn && user ? {
+    id: user.id,
+    email: user.primaryEmailAddress?.emailAddress || '',
+    name: user.fullName || user.firstName || '',
+    profilePicture: user.imageUrl || '',
+    avatar: user.imageUrl || '',
+  } : null;
 
-    const unsubscribe = pb.authStore.onChange((token, model) => {
-      if (pb.authStore.isValid) {
-        if (model?.collectionName === 'admins') {
-          setCurrentAdmin(model);
-          setCurrentUser(null);
-        } else if (model?.collectionName === 'users') {
-          setCurrentUser(model);
-          setCurrentAdmin(null);
-        }
-      } else {
-        setCurrentAdmin(null);
-        setCurrentUser(null);
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  const loginAdmin = async (email, password) => {
-    try {
-      const authData = await pb.collection('admins').authWithPassword(email, password);
-      setCurrentAdmin(authData.record);
-      return authData;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const loginUser = async (email, password) => {
-    try {
-      const authData = await pb.collection('users').authWithPassword(email, password);
-      setCurrentUser(authData.record);
-      return authData;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  /**
-   * Google OAuth Login via PocketBase
-   * Opens a popup window for Google sign-in.
-   * PocketBase handles the OAuth2 flow and creates/links the user automatically.
-   */
-  const loginWithGoogle = async () => {
-    try {
-      const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
-
-      // Update profile picture from Google if available
-      const meta = authData.meta;
-      if (meta?.avatarUrl && authData.record) {
-        try {
-          await pb.collection('users').update(authData.record.id, {
-            profilePicture: meta.avatarUrl,
-            name: authData.record.name || meta.name || '',
-          }, { $autoCancel: false });
-        } catch (updateErr) {
-          // Non-critical — profile picture update failed, proceed anyway
-          console.warn('Could not update profile picture:', updateErr);
-        }
-      }
-
-      setCurrentUser(authData.record);
-      return authData;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const signupUser = async (data) => {
-    try {
-      const record = await pb.collection('users').create(data, { $autoCancel: false });
-      await loginUser(data.email, data.password);
-      return record;
-    } catch (error) {
-      throw error;
-    }
-  };
+  const currentAdmin = isSignedIn && isAdmin ? currentUser : null;
 
   const logout = () => {
-    pb.authStore.clear();
-    setCurrentAdmin(null);
-    setCurrentUser(null);
+    signOut();
   };
 
   return (
     <AuthContext.Provider value={{
-      currentUser,
+      currentUser: isAdmin ? null : currentUser,
       currentAdmin,
-      loginAdmin,
-      loginUser,
-      loginWithGoogle,
-      signupUser,
       logout,
-      isLoading,
-      isAuthenticated: !!currentUser || !!currentAdmin,
-      isAdmin: !!currentAdmin
+      isLoading: !isLoaded,
+      isAuthenticated: !!isSignedIn,
+      isAdmin,
+      getToken,
     }}>
       {children}
     </AuthContext.Provider>

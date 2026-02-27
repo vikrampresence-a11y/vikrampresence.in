@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { usePayment } from '@/context/PaymentContext.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { Loader2, Mail, Phone } from 'lucide-react';
-import pb from '@/lib/pocketbaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { saveRedirectPath } from '@/hooks/useSmartRedirect';
 
@@ -14,7 +13,7 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [email, setEmail] = useState(pb.authStore.model?.email || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
   const [phone, setPhone] = useState('');
   const [showForm, setShowForm] = useState(false);
 
@@ -28,10 +27,10 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
   };
 
   const handleBuyClick = () => {
-    // If user is NOT logged in, save current product page and redirect to login
+    // If user is NOT logged in, save current product page and redirect to sign-in
     if (!isAuthenticated) {
       saveRedirectPath(window.location.pathname);
-      navigate(`/login?redirect_url=${encodeURIComponent(window.location.pathname)}`);
+      navigate(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`);
       toast({
         title: "Login Required",
         description: "Please sign in to purchase this product.",
@@ -40,7 +39,7 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
     }
     // If logged in, show the contact details form
     setShowForm(true);
-    // Pre-fill email from auth
+    // Pre-fill email from Clerk user
     if (currentUser?.email) {
       setEmail(currentUser.email);
     }
@@ -60,7 +59,7 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
     }
 
     const customerDetails = {
-      name: currentUser?.name || pb.authStore.model?.name || 'Guest User',
+      name: currentUser?.name || 'Guest User',
       email: email,
       phone: phone
     };

@@ -17,7 +17,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to sign-in; Clerk will handle the sign-in UI
+    return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 
   if (requireAdmin && !isAdmin) {

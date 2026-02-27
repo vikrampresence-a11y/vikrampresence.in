@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import apiServerClient from '@/lib/apiServerClient';
-import pb from '@/lib/pocketbaseClient';
 
 const PaymentContext = createContext();
 

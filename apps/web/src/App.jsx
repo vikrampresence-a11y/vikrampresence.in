@@ -60,7 +60,10 @@ function App() {
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
-                {/* Auth Routes */}
+                {/* Auth Routes — Clerk-powered */}
+                <Route path="/sign-in/*" element={<LoginPage />} />
+                <Route path="/sign-up/*" element={<SignupPage />} />
+                {/* Legacy routes — redirect to new Clerk paths */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
 
