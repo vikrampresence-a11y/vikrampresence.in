@@ -8,6 +8,7 @@
 - [Contact Us | Vikram Presence](/contact): Get in touch with Vikram Presence. We respond within 24-48 hours.
 - [FAQ | Vikram Presence](/faq): Frequently asked questions about Vikram Presence products.
 - [Login | Vikram Presence](/login): No description available
+- [My Products | Vikram Presence](/myproducts): Access your purchased ebooks and courses.
 - [Online Courses for Personal Growth | Vikram Presence](/courses): Join structured online courses designed to help you grow. 30-Day Clarity Challenge, Discipline Bootcamp, and more.
 - [Payment Successful | Vikram Presence](/thankyou): No description available
 - [Privacy Policy | Vikram Presence](/privacypolicy): Privacy Policy for Vikram Presence digital products and services.
