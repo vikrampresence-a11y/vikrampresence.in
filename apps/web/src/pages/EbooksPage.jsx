@@ -1,55 +1,36 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import pb from '@/lib/pocketbaseClient';
+import { ArrowLeft } from 'lucide-react';
+import DirectCheckoutButton from '@/components/features/DirectCheckoutButton';
+
+const DRIVE_LINK = 'https://drive.google.com/drive/folders/1-fJ109sF0WJNRv3geArVKehGHE2SQ0zW?usp=drive_link';
+
+// Hardcoded ebook product — ₹1 for testing
+const ebook = {
+  id: 'vikram-presence-ebook',
+  title: 'The Vikram Presence',
+  subtitle: 'The Internal Blueprint for Control, Dominance & Monetization',
+  description: 'Content Creation: Mastering internal systems, mindset, algorithm psychology, authority positioning, and monetization frameworks for unfair advantage.',
+  price: 1,         // ₹1 for testing
+  pricePaise: 100,  // 100 paise = ₹1
+  driveLink: DRIVE_LINK,
+  image: '/ebooks/vikram-presence-cover.png',
+};
 
 const EbooksPage = () => {
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const records = await pb.collection('products').getFullList({
-          filter: 'type="ebook"',
-          sort: 'price',
-          $autoCancel: false
-        });
-        setProducts(records);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  const getImageUrl = (record) => {
-    if (record.image) {
-      return pb.files.getUrl(record, record.image);
-    }
-    return 'https://images.unsplash.com/photo-1544453271-bad31b39b097?auto=format&fit=crop&w=600&q=80';
-  };
-
   return (
     <>
       <Helmet>
         <title>Best Ebooks for Clarity, Discipline & Confidence | Vikram Presence</title>
-        <meta name="description" content="Discover powerful ebooks to build clarity, discipline, and confidence. Simple, practical guides for real life improvement." />
-        <meta name="keywords" content="ebooks, self-improvement, clarity, discipline, confidence" />
+        <meta name="description" content="Discover powerful ebooks to build clarity, discipline, and confidence." />
       </Helmet>
 
       <div className="bg-black min-h-screen text-white pt-32 pb-24 font-sans">
         <div className="container mx-auto px-6 max-w-7xl">
-          
+
           <Link to="/" className="inline-flex items-center text-white hover:text-[#FFD700] transition-colors mb-10 text-sm uppercase tracking-widest font-bold">
             <ArrowLeft size={16} className="mr-2" /> Back to Home
           </Link>
@@ -61,70 +42,84 @@ const EbooksPage = () => {
             </p>
           </motion.div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center py-32">
-              <Loader2 className="w-12 h-12 text-[#FFD700] animate-spin" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-20 text-red-400 bg-red-500/10 rounded-2xl border border-red-500/20">
-              <p>Error loading books: {error}</p>
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-32 text-white">
-              <p className="text-xl">No books found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-              {products.map((product, index) => (
-                <motion.div 
-                  key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-[#0a0a0a] border border-[#FFD700]/20 rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.1)] hover:shadow-[0_0_30px_rgba(255,215,0,0.3)] hover:-translate-y-1 flex flex-col h-full group"
+          {/* Featured Ebook — Single Product */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-4xl mx-auto"
+          >
+            <div
+              className="rounded-3xl overflow-hidden border-2 border-[#FFD700]/30 hover:border-[#FFD700] transition-all duration-500"
+              style={{
+                backgroundColor: '#0a0a0a',
+                boxShadow: '0 0 40px rgba(255, 204, 0, 0.15)',
+              }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+
+                {/* Cover Image — No white background */}
+                <div
+                  className="relative flex items-center justify-center p-8 md:p-12"
+                  style={{ backgroundColor: '#0a0a0a' }}
                 >
-                  <div className="aspect-[4/3] overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-                    <img 
-                      src={getImageUrl(product)} 
-                      alt={product.title} 
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4 z-20">
-                      <span className="px-3 py-1 bg-black/80 backdrop-blur-md border border-[#FFD700]/50 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#FFD700] shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-                        EBOOK
-                      </span>
-                    </div>
+                  <img
+                    src={ebook.image}
+                    alt={ebook.title}
+                    className="w-full max-w-xs md:max-w-sm rounded-lg object-contain"
+                    style={{
+                      filter: 'drop-shadow(0 0 30px rgba(255, 204, 0, 0.3))',
+                      backgroundColor: 'transparent',
+                    }}
+                    onError={(e) => {
+                      // Fallback if image not found
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute top-6 left-6">
+                    <span className="px-4 py-1.5 bg-black/80 backdrop-blur-md border border-[#FFD700]/50 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#FFD700]">
+                      EBOOK
+                    </span>
                   </div>
-                  <div className="p-8 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#FFD700] transition-colors drop-shadow-sm line-clamp-1">{product.title}</h3>
-                    <p className="text-white text-sm font-light line-clamp-2 mb-8 flex-grow">
-                      {product.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-2xl font-bold text-white">₹{product.price}</span>
-                      <div className="flex space-x-3">
-                        <Link 
-                          to={`/product/${product.id}`}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full transition-colors"
-                        >
-                          Details
-                        </Link>
-                        <Link 
-                          to={`/product/${product.id}`}
-                          className="px-4 py-2 bg-[#FFD700] hover:bg-yellow-400 text-black text-xs font-bold uppercase tracking-widest rounded-full transition-colors shadow-[0_0_15px_rgba(255,215,0,0.4)]"
-                        >
-                          Buy Now
-                        </Link>
-                      </div>
-                    </div>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-8 md:p-12 flex flex-col justify-center">
+                  <h2
+                    className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight"
+                    style={{ color: '#FFD700', textShadow: '0 0 15px rgba(255, 204, 0, 0.3)' }}
+                  >
+                    {ebook.title}
+                  </h2>
+                  <p className="text-sm text-gray-400 uppercase tracking-widest mb-6 font-bold">
+                    {ebook.subtitle}
+                  </p>
+                  <p className="text-gray-300 leading-relaxed mb-8 font-light">
+                    {ebook.description}
+                  </p>
+
+                  <div className="mb-8">
+                    <span className="text-4xl font-extrabold text-white">₹{ebook.price}</span>
+                    <span className="text-gray-500 text-sm ml-2 line-through">₹499</span>
+                    <span className="ml-3 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold uppercase tracking-widest rounded-full">
+                      Test Price
+                    </span>
                   </div>
-                </motion.div>
-              ))}
+
+                  {/* Direct Checkout — Razorpay → Drive Link */}
+                  <DirectCheckoutButton
+                    productName={ebook.title}
+                    pricePaise={ebook.pricePaise}
+                    driveLink={ebook.driveLink}
+                  />
+
+                  <p className="text-gray-500 text-xs mt-6 text-center">
+                    Instant access after payment. No login required.
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
+          </motion.div>
 
         </div>
       </div>

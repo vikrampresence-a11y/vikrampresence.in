@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Book, MonitorPlay, Layers } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
 import ScrollReveal from '@/components/shared/ScrollReveal';
+import AnimatedLogo from '@/components/shared/AnimatedLogo';
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -71,50 +72,23 @@ const HomePage = () => {
         <meta name="description" content="Premium ebooks and courses for building clarity, discipline, and absolute confidence." />
       </Helmet>
 
-      <div className="min-h-screen text-white selection:bg-[#FFD700] selection:text-black font-sans relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0a0014 0%, #030712 25%, #0c0a1a 50%, #020617 75%, #0a0014 100%)' }}>
+      {/* PURE BLACK BACKGROUND — No orbs, no orbits, no floating planets */}
+      <div className="min-h-screen text-white selection:bg-[#FFD700] selection:text-black font-sans relative overflow-hidden bg-black">
 
-        {/* Animated Background Orbs */}
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          <div className="hero-orb hero-orb-1"></div>
-          <div className="hero-orb hero-orb-2"></div>
-          <div className="hero-orb hero-orb-3"></div>
-          <div className="hero-orb hero-orb-4"></div>
-          {/* Subtle grid overlay */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'linear-gradient(rgba(255,215,0,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.015) 1px, transparent 1px)',
-            backgroundSize: '80px 80px'
-          }}></div>
-          {/* Radial vignette */}
-          <div className="absolute inset-0" style={{
-            background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)'
-          }}></div>
-        </div>
-
-        {/* 1. Hero Section */}
+        {/* 1. Hero Section — Clean, static */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-          {/* Hero-specific top glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full z-0" style={{
-            background: 'radial-gradient(ellipse, rgba(255,215,0,0.06) 0%, rgba(139,92,246,0.03) 40%, transparent 70%)',
-            filter: 'blur(80px)'
-          }}></div>
-
           <div className="relative z-10 container mx-auto px-6 text-center flex flex-col items-center justify-center">
 
-            {/* Cinematic Fire Animation */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="relative w-48 h-48 mb-8 flex items-center justify-center"
-            >
-              <div className="absolute inset-0 rounded-full border border-[#FFD700]/15 shadow-[0_0_40px_rgba(255,215,0,0.08)]"></div>
-              <div className="absolute inset-4 rounded-full border border-violet-500/10 shadow-[0_0_25px_rgba(139,92,246,0.1)]"></div>
-              <motion.div
-                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="w-24 h-24 rounded-full blur-[20px]"
-                style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.6), rgba(139,92,246,0.4), rgba(255,165,0,0.3))' }}
-              ></motion.div>
-            </motion.div>
+            {/* YOUR LOGO — Big, glowing, no orbit */}
+            <div className="mb-10">
+              <AnimatedLogo
+                size={120}
+                className="text-[#FFD700]"
+                style={{
+                  filter: 'drop-shadow(0 0 30px rgba(255, 204, 0, 0.8)) drop-shadow(0 0 60px rgba(255, 204, 0, 0.4))',
+                }}
+              />
+            </div>
 
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tighter drop-shadow-lg">
               Vikram <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.4)]">Presence</span>
@@ -141,11 +115,6 @@ const HomePage = () => {
 
         {/* 2. Explore Shop Flow */}
         <section className="py-24 relative border-t border-white/5">
-          {/* Section accent glow */}
-          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full z-0" style={{
-            background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)',
-            filter: 'blur(60px)'
-          }}></div>
           <div className="container mx-auto px-6 text-center relative z-10">
             <ScrollReveal>
               <button
@@ -200,15 +169,10 @@ const HomePage = () => {
 
         {/* 3. Featured Products */}
         <section className="py-32 relative">
-          {/* Section accent glow */}
-          <div className="absolute top-1/3 left-0 w-[600px] h-[600px] rounded-full z-0" style={{
-            background: 'radial-gradient(circle, rgba(255,215,0,0.03) 0%, transparent 60%)',
-            filter: 'blur(80px)'
-          }}></div>
           <div className="container mx-auto px-6 relative z-10">
             <ScrollReveal>
               <div className="text-center mb-20">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-4 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Featured Products</h2>
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-4 text-white">Featured Products</h2>
               </div>
             </ScrollReveal>
 

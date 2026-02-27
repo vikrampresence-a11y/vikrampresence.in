@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Target, Activity, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AboutVikram from '@/components/sections/AboutVikram.jsx';
 
 const AboutPage = () => {
   return (
@@ -68,6 +69,9 @@ const AboutPage = () => {
               </motion.div>
             ))}
           </div>
+
+          {/* God-Tier About Section */}
+          <AboutVikram />
 
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.98, boxShadow: '0 0 0px rgba(255,215,0,0)', borderColor: 'rgba(255,255,255,0.05)' }}

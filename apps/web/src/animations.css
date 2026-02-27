@@ -1,10 +1,26 @@
+/* ═══════════════════════════════════════════════
+   GLOBAL OVERRIDES — Pure black, no animations
+   ═══════════════════════════════════════════════ */
 
-/* Fade-in animations */
+/* Kill ALL ambient background animations */
+html,
+body {
+  background-color: #000000 !important;
+  background-image: none !important;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   SUBTLE UI ANIMATIONS ONLY (no background orbs)
+   ═══════════════════════════════════════════════ */
+
+/* Fade-in for page loads and scroll reveals */
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -16,37 +32,14 @@
     opacity: 0;
     transform: translateY(40px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Staggered reveal animations */
-.stagger-item {
-  opacity: 0;
-  animation: fadeIn 0.8s ease-out forwards;
-}
-
-.stagger-item:nth-child(1) { animation-delay: 0.1s; }
-.stagger-item:nth-child(2) { animation-delay: 0.2s; }
-.stagger-item:nth-child(3) { animation-delay: 0.3s; }
-.stagger-item:nth-child(4) { animation-delay: 0.4s; }
-.stagger-item:nth-child(5) { animation-delay: 0.5s; }
-.stagger-item:nth-child(6) { animation-delay: 0.6s; }
-
-/* Scroll reveal animation */
+/* Scroll reveal */
 .scroll-reveal {
   opacity: 0;
   transform: translateY(40px);
@@ -77,51 +70,6 @@
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Text reveal animation */
-.text-reveal {
-  position: relative;
-  overflow: hidden;
-}
-
-.text-reveal::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #fff;
-  transform: translateX(-101%);
-  transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-.text-reveal:hover::after {
-  transform: translateX(101%);
-}
-
-/* Animated divider */
-.animated-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-  animation: dividerPulse 4s ease-in-out infinite;
-}
-
-@keyframes dividerPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-/* Scroll indicator */
-@keyframes scrollBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(10px); }
-}
-
-.scroll-indicator {
-  animation: scrollBounce 2s ease-in-out infinite;
-}
-
 /* Button hover effects */
 .btn-primary {
   position: relative;
@@ -146,125 +94,23 @@
   width: 100%;
 }
 
-/* Breathing Glow for V Logo */
-@keyframes breathingGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
-    transform: scale(1.02);
-    opacity: 1;
-  }
-}
-
-.v-glow {
-  animation: breathingGlow 5s ease-in-out infinite;
-}
-
-/* Smooth transitions */
-.smooth-transition {
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
 /* Page load animation */
 .page-load {
   animation: fadeInUp 1.2s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
 
-/* NEW: Floating Loop Animations */
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: scale(0.98); }
-  25% { opacity: 1; transform: scale(1); }
-  75% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.02); }
+/* Social icon glow */
+.social-icon {
+  filter: drop-shadow(0 0 25px #ffcc00);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.05); }
-  50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.25); }
+.social-icon:hover {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 50px #ffcc00);
 }
 
-.animate-fade-in-out {
-  animation: fadeInOut 7s ease-in-out infinite;
-}
-
-.animate-fade-in-out-fast {
-  animation: fadeInOut 6s ease-in-out infinite;
-}
-
-.animate-glow-pulse {
-  animation: glowPulse 4s ease-in-out infinite;
-}
-
-/* ===== Floating Background Orbs ===== */
-@keyframes orbDrift1 {
-  0%   { transform: translate(0, 0) scale(1); }
-  25%  { transform: translate(80px, -60px) scale(1.1); }
-  50%  { transform: translate(-40px, -120px) scale(0.95); }
-  75%  { transform: translate(-100px, -30px) scale(1.05); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes orbDrift2 {
-  0%   { transform: translate(0, 0) scale(1); }
-  25%  { transform: translate(-100px, 50px) scale(1.05); }
-  50%  { transform: translate(60px, 100px) scale(0.9); }
-  75%  { transform: translate(120px, -40px) scale(1.1); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes orbDrift3 {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(70px, 80px) scale(1.15); }
-  66%  { transform: translate(-90px, 30px) scale(0.92); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-@keyframes orbDrift4 {
-  0%   { transform: translate(0, 0) scale(1); }
-  20%  { transform: translate(-60px, -80px) scale(1.08); }
-  40%  { transform: translate(50px, 60px) scale(0.95); }
-  60%  { transform: translate(100px, -20px) scale(1.12); }
-  80%  { transform: translate(-30px, 50px) scale(0.98); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-
-.hero-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.5;
-  will-change: transform;
-}
-.hero-orb-1 {
-  width: 500px;
-  height: 500px;
-  top: -10%;
-  left: -5%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.08) 0%, rgba(255, 165, 0, 0.04) 50%, transparent 80%);
-  animation: orbDrift1 20s ease-in-out infinite;
-}
-.hero-orb-2 {
-  width: 400px;
-  height: 400px;
-  top: 40%;
-  right: -8%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.07) 0%, rgba(99, 102, 241, 0.04) 50%, transparent 80%);
-  animation: orbDrift2 25s ease-in-out infinite;
-}
-.hero-orb-3 {
-  width: 350px;
-  height: 350px;
-  bottom: 10%;
-  left: 15%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, rgba(139, 92, 246, 0.03) 50%, transparent 80%);
-  animation: orbDrift3 18s ease-in-out infinite;
-}
-.hero-orb-4 {
-  width: 300px;
-  height: 300px;
-  top: 20%;
-  left: 50%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(255, 215, 0, 0.03) 50%, transparent 80%);
-  animation: orbDrift4 22s ease-in-out infinite;
-}
+/* ═══════════════════════════════════════════════
+   ALL BACKGROUND ORBS — DESTROYED
+   No orbDrift, no hero-orb, no floating planets.
+   ═══════════════════════════════════════════════ */
