@@ -10,7 +10,6 @@
 - [Login | Vikram Presence](/login): No description available
 - [My Products | Vikram Presence](/myproducts): Access your purchased ebooks and courses.
 - [Online Courses for Personal Growth | Vikram Presence](/courses): Join structured online courses designed to help you grow. 30-Day Clarity Challenge, Discipline Bootcamp, and more.
-- [Payment Successful | Vikram Presence](/thankyou): No description available
 - [Privacy Policy | Vikram Presence](/privacypolicy): Privacy Policy for Vikram Presence digital products and services.
 - [Refund Policy | Vikram Presence](/refundpolicy): Refund and cancellation policy for Vikram Presence digital products.
 - [Sign Up | Vikram Presence](/signup): No description available
