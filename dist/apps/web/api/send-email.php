@@ -98,7 +98,9 @@ try {
             'Content-Type: application/json',
             'Authorization: Bearer ' . $RESEND_API_KEY,
         ],
-        CURLOPT_TIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
     ]);
 
     $emailResponse = curl_exec($ch);
