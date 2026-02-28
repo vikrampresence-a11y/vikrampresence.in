@@ -1,16 +1,24 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { CheckCircle, Download, ArrowRight, Copy, Mail, Loader2, Inbox } from 'lucide-react';
+import { CheckCircle, Download, ArrowRight, Copy, Mail, Phone, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 
 const ThankYouPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { productName, googleDriveLink, paymentId } = location.state || {};
+  const {
+    productName,
+    googleDriveLink,
+    paymentId,
+    buyerEmail,
+    buyerPhone,
+    emailSent,
+    smsSent,
+  } = location.state || {};
+
   const [copied, setCopied] = useState(false);
-  const [email, setEmail] = useState('');
-  const [emailStatus, setEmailStatus] = useState('idle'); // idle | sending | sent | error
 
   useEffect(() => {
     if (!productName && !googleDriveLink) {
@@ -25,36 +33,6 @@ const ThankYouPage = () => {
       navigator.clipboard.writeText(googleDriveLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!email || !email.includes('@')) {
-      return;
-    }
-
-    setEmailStatus('sending');
-
-    try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const res = await fetch(`${apiBase}/api/email/send-product-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          buyerEmail: email,
-          productName,
-          googleDriveLink,
-        }),
-      });
-
-      if (res.ok) {
-        setEmailStatus('sent');
-      } else {
-        setEmailStatus('error');
-      }
-    } catch (err) {
-      console.error('Email send error:', err);
-      setEmailStatus('error');
     }
   };
 
@@ -77,18 +55,56 @@ const ThankYouPage = () => {
             Payment Successful! 🎉
           </h1>
 
-          <p className="text-xl text-gray-300 mb-4 font-light">
+          <p className="text-xl text-gray-300 mb-6 font-light">
             Thank you for the trust. Your product is ready.
           </p>
 
           {/* ═══════════════════════════════════════
-              CHECK YOUR EMAIL BANNER
+              DELIVERY STATUS — Glowing Success Toast
               ═══════════════════════════════════════ */}
-          <div className="flex items-center justify-center gap-3 bg-[#FFD700]/10 border border-[#FFD700]/30 rounded-xl px-6 py-4 mb-8">
-            <Inbox size={22} className="text-[#FFD700] flex-shrink-0" />
-            <p className="text-[#FFD700] font-bold text-sm md:text-base">
-              Enter your email below to receive the product link in your inbox!
-            </p>
+          <div className="rounded-2xl p-5 mb-8 border border-[#FFD700]/30 bg-[#FFD700]/[0.05]"
+            style={{ boxShadow: '0 0 25px rgba(255, 204, 0, 0.1)' }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Sparkles size={18} className="text-[#FFD700]" />
+              <p className="text-[#FFD700] font-bold text-sm uppercase tracking-widest">
+                Delivery Status
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {/* Email Status */}
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <Mail size={14} className={emailSent ? 'text-green-400' : 'text-gray-500'} />
+                <span className={emailSent ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                  {emailSent
+                    ? `✅ Drive link sent to ${buyerEmail}`
+                    : buyerEmail
+                      ? `Email delivery pending for ${buyerEmail}`
+                      : 'No email provided'
+                  }
+                </span>
+              </div>
+
+              {/* SMS Status */}
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <Phone size={14} className={smsSent ? 'text-green-400' : 'text-gray-500'} />
+                <span className={smsSent ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                  {smsSent
+                    ? `✅ SMS sent to ${buyerPhone}`
+                    : buyerPhone
+                      ? `SMS delivery pending for ${buyerPhone}`
+                      : 'No phone provided'
+                  }
+                </span>
+              </div>
+            </div>
+
+            {(emailSent || smsSent) && (
+              <p className="text-[#FFD700] text-xs mt-3 font-medium">
+                📧 Please check your email inbox (and spam folder) for the product link!
+              </p>
+            )}
           </div>
 
           {/* Purchased Product */}
@@ -97,60 +113,6 @@ const ThankYouPage = () => {
             <h2 className="text-2xl font-bold text-[#FFD700]">{productName}</h2>
             {paymentId && (
               <p className="text-xs text-gray-500 mt-2 font-mono">Payment ID: {paymentId}</p>
-            )}
-          </div>
-
-          {/* ═══════════════════════════════════════
-              EMAIL INPUT — Send Drive Link to Email
-              ═══════════════════════════════════════ */}
-          <div className="rounded-2xl p-6 mb-8 border border-white/10 bg-white/[0.02]">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Mail size={18} className="text-[#FFD700]" />
-              <p className="text-sm text-white font-bold uppercase tracking-widest">
-                Get Link in Your Email
-              </p>
-            </div>
-
-            {emailStatus === 'sent' ? (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-6 py-4">
-                <p className="text-green-400 font-bold text-sm">
-                  ✅ Email sent to {email}! Please check your inbox (and spam folder).
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="flex-grow px-5 py-4 bg-white/[0.04] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/30 focus:outline-none focus:border-[#FFD700]/50 transition-all duration-300"
-                />
-                <button
-                  onClick={handleSendEmail}
-                  disabled={emailStatus === 'sending' || !email.includes('@')}
-                  className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 disabled:opacity-50 flex-shrink-0"
-                  style={{
-                    background: '#FFD700',
-                    color: '#000',
-                    boxShadow: '0 0 20px rgba(255, 204, 0, 0.3)',
-                  }}
-                >
-                  {emailStatus === 'sending' ? (
-                    <><Loader2 size={16} className="animate-spin" /> Sending...</>
-                  ) : emailStatus === 'error' ? (
-                    'Retry'
-                  ) : (
-                    <><Mail size={16} /> Send</>
-                  )}
-                </button>
-              </div>
-            )}
-
-            {emailStatus === 'error' && (
-              <p className="text-red-400 text-xs mt-3">
-                Failed to send email. You can still access your product using the link below.
-              </p>
             )}
           </div>
 
@@ -207,7 +169,7 @@ const ThankYouPage = () => {
           )}
 
           <Link
-            to="/shop"
+            to="/"
             className="inline-flex items-center text-gray-400 text-sm uppercase tracking-widest hover:text-[#FFD700] transition-colors"
           >
             Explore More <ArrowRight size={14} className="ml-2" />

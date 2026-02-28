@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Mail, Phone } from 'lucide-react';
 
 /**
- * DirectCheckoutButton — Zero-auth Razorpay pipeline.
- * Opens Razorpay checkout, collects buyer's email,
- * sends product link via email, then redirects to Thank You page.
- *
- * Props:
- *   productName  — Name shown in Razorpay modal
- *   pricePaise   — Price in paise (e.g. 49900 for ₹499)
- *   driveLink    — Google Drive link to deliver after payment
+ * DirectCheckoutButton — Full delivery pipeline.
+ * 1. Collects buyer's email + phone
+ * 2. Opens Razorpay checkout
+ * 3. On success → calls /deliver-product API (email + SMS)
+ * 4. Navigates to ThankYouPage
  */
 const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const navigate = useNavigate();
 
     // Load Razorpay script
@@ -29,29 +29,38 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
         document.body.appendChild(script);
     }, []);
 
-    // Send email with product link (fire-and-forget)
-    const sendProductEmail = async (buyerEmail) => {
+    // Call delivery API (fire-and-forget)
+    const triggerDelivery = async (paymentId) => {
         try {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-            await fetch(`${apiBase}/api/email/send-product-email`, {
+            const res = await fetch(`${apiBase}/deliver-product`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    buyerEmail,
+                    email,
+                    phone,
                     productName,
-                    googleDriveLink: driveLink,
+                    driveLink,
+                    paymentId,
                 }),
             });
-            console.log('Product email sent to:', buyerEmail);
+            const data = await res.json();
+            console.log('Delivery result:', data);
+            return data;
         } catch (err) {
-            console.error('Failed to send product email:', err);
-            // Non-blocking — user still gets the link on the Thank You page
+            console.error('Delivery API error:', err);
+            return { emailSent: false, smsSent: false };
         }
     };
 
     const handleClick = () => {
         if (!razorpayLoaded) {
             alert('Payment system is loading. Please try again.');
+            return;
+        }
+
+        if (!email || !email.includes('@')) {
+            alert('Please enter a valid email address to receive your product.');
             return;
         }
 
@@ -65,23 +74,23 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
             description: productName,
             theme: { color: '#FFD700' },
             prefill: {
-                // Razorpay will ask for email on the checkout modal
+                email: email,
+                contact: phone || undefined,
             },
-            handler: function (response) {
-                // Extract buyer's email from Razorpay response
-                // Razorpay doesn't return email in handler, but we can get it from the checkout form
-                // We'll use a workaround: store email from prefill or collect via modal
+            handler: async function (response) {
+                // Trigger delivery in background
+                const deliveryResult = await triggerDelivery(response.razorpay_payment_id);
 
-                // Send email in background (fire-and-forget)
-                // Razorpay provides the email via the payment entity
-                // For now, we trigger the email via the Thank You page
-
-                // Navigate to Thank You page with product details
+                // Navigate to Thank You page
                 navigate('/thank-you', {
                     state: {
                         productName,
                         googleDriveLink: driveLink,
                         paymentId: response.razorpay_payment_id,
+                        buyerEmail: email,
+                        buyerPhone: phone,
+                        emailSent: deliveryResult.emailSent || false,
+                        smsSent: deliveryResult.smsSent || false,
                     },
                 });
             },
@@ -103,37 +112,98 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     const displayPrice = `₹${(pricePaise / 100).toFixed(0)}`;
 
     return (
-        <button
-            onClick={handleClick}
-            disabled={isLoading}
-            style={{
-                background: '#ffcc00',
-                color: '#000000',
-                padding: '18px 50px',
-                fontWeight: 800,
-                fontSize: '16px',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                borderRadius: '50px',
-                border: 'none',
-                cursor: isLoading ? 'wait' : 'pointer',
-                boxShadow: '0 0 25px rgba(255, 204, 0, 0.8)',
-                transition: 'all 0.3s ease',
-                opacity: isLoading ? 0.7 : 1,
-            }}
-            onMouseEnter={(e) => {
-                if (!isLoading) {
-                    e.currentTarget.style.boxShadow = '0 0 50px rgba(255, 204, 0, 1)';
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                }
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 25px rgba(255, 204, 0, 0.8)';
-                e.currentTarget.style.transform = 'scale(1)';
-            }}
-        >
-            {isLoading ? 'Processing...' : `Buy Now — ${displayPrice}`}
-        </button>
+        <div style={{ width: '100%' }}>
+            {/* Email + Phone inputs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+                <div style={{ position: 'relative' }}>
+                    <Mail size={16} style={{
+                        position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
+                        color: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
+                    }} />
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Your email address *"
+                        required
+                        style={{
+                            width: '100%',
+                            padding: '14px 14px 14px 40px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            outline: 'none',
+                            transition: 'border-color 0.3s',
+                            boxSizing: 'border-box',
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = 'rgba(255,204,0,0.5)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                    />
+                </div>
+                <div style={{ position: 'relative' }}>
+                    <Phone size={16} style={{
+                        position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
+                        color: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
+                    }} />
+                    <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Phone number (for SMS)"
+                        style={{
+                            width: '100%',
+                            padding: '14px 14px 14px 40px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            outline: 'none',
+                            transition: 'border-color 0.3s',
+                            boxSizing: 'border-box',
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = 'rgba(255,204,0,0.5)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                    />
+                </div>
+            </div>
+
+            {/* Buy Now Button */}
+            <button
+                onClick={handleClick}
+                disabled={isLoading}
+                style={{
+                    width: '100%',
+                    background: '#ffcc00',
+                    color: '#000000',
+                    padding: '18px 50px',
+                    fontWeight: 800,
+                    fontSize: '16px',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    borderRadius: '50px',
+                    border: 'none',
+                    cursor: isLoading ? 'wait' : 'pointer',
+                    boxShadow: '0 0 25px rgba(255, 204, 0, 0.8)',
+                    transition: 'all 0.3s ease',
+                    opacity: isLoading ? 0.7 : 1,
+                }}
+                onMouseEnter={(e) => {
+                    if (!isLoading) {
+                        e.currentTarget.style.boxShadow = '0 0 50px rgba(255, 204, 0, 1)';
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 0 25px rgba(255, 204, 0, 0.8)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                }}
+            >
+                {isLoading ? 'Processing...' : `Buy Now — ${displayPrice}`}
+            </button>
+        </div>
     );
 };
 

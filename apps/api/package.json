@@ -19,6 +19,7 @@
     "nodemailer": "^6.9.7",
     "pocketbase": "^0.25.0",
     "razorpay": "^2.9.2",
+    "resend": "^6.9.3",
     "twilio": "^4.0.0"
   },
   "devDependencies": {
