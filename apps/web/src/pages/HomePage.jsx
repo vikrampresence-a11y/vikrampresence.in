@@ -164,6 +164,9 @@ const HomePage = () => {
                         </div>
                         <div className="p-8 flex flex-col flex-grow">
                           <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-[#FFD700] transition-colors duration-300">{product.title}</h3>
+                          {product.description && (
+                            <p className="text-white/50 text-sm font-light mb-4 leading-relaxed" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
+                          )}
                           <div className="flex justify-between items-center mt-auto pt-6 border-t border-white/5 mb-6">
                             <span className="text-xl font-bold text-white">₹{(product.pricePaise / 100).toFixed(0)}</span>
                           </div>

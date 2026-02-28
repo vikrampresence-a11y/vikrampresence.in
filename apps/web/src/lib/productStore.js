@@ -107,6 +107,7 @@ export const subscribeProducts = (callback) => {
 export const addProduct = async (product) => {
     const productData = {
         title: product.title,
+        description: product.description || '',
         pricePaise: product.pricePaise,
         coverImageUrl: product.coverImageUrl,
         driveLink: product.driveLink,

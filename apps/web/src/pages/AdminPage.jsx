@@ -108,6 +108,7 @@ const AdminDashboard = ({ onLogout }) => {
 
     // Form state
     const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [priceRupees, setPriceRupees] = useState('');
     const [coverImageUrl, setCoverImageUrl] = useState('');
     const [driveLink, setDriveLink] = useState('');
@@ -141,12 +142,14 @@ const AdminDashboard = ({ onLogout }) => {
         try {
             await addProduct({
                 title,
+                description,
                 pricePaise,
                 coverImageUrl,
                 driveLink,
                 type: productType,
             });
             setTitle('');
+            setDescription('');
             setPriceRupees('');
             setCoverImageUrl('');
             setDriveLink('');
@@ -202,8 +205,8 @@ const AdminDashboard = ({ onLogout }) => {
             <div className="max-w-6xl mx-auto px-6 py-8">
                 {/* Storage mode indicator */}
                 <div className={`mb-8 flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${firebaseActive
-                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                        : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                    ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
                     }`}>
                     <Info size={16} />
                     {firebaseActive
@@ -228,15 +231,15 @@ const AdminDashboard = ({ onLogout }) => {
                                     <div className="flex gap-3">
                                         <button type="button" onClick={() => setProductType('ebook')}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold uppercase tracking-wider border transition-all duration-300 ${productType === 'ebook'
-                                                    ? 'bg-[#ffcc00]/10 border-[#ffcc00]/50 text-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.15)]'
-                                                    : 'bg-white/[0.03] border-white/[0.08] text-white/40 hover:text-white/60'
+                                                ? 'bg-[#ffcc00]/10 border-[#ffcc00]/50 text-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.15)]'
+                                                : 'bg-white/[0.03] border-white/[0.08] text-white/40 hover:text-white/60'
                                                 }`}>
                                             <Book size={16} /> Ebook
                                         </button>
                                         <button type="button" onClick={() => setProductType('course')}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold uppercase tracking-wider border transition-all duration-300 ${productType === 'course'
-                                                    ? 'bg-[#ffcc00]/10 border-[#ffcc00]/50 text-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.15)]'
-                                                    : 'bg-white/[0.03] border-white/[0.08] text-white/40 hover:text-white/60'
+                                                ? 'bg-[#ffcc00]/10 border-[#ffcc00]/50 text-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.15)]'
+                                                : 'bg-white/[0.03] border-white/[0.08] text-white/40 hover:text-white/60'
                                                 }`}>
                                             <MonitorPlay size={16} /> Course
                                         </button>
@@ -248,6 +251,18 @@ const AdminDashboard = ({ onLogout }) => {
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
                                         placeholder="e.g. Habit Mastery Ebook"
                                         className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm placeholder-white/20 focus:outline-none focus:border-[#ffcc00]/40 transition-all duration-300" />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 mb-2">Description <span className="text-white/20">(max 500 chars)</span></label>
+                                    <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Describe your product — what the buyer will learn or get..."
+                                        maxLength={500}
+                                        rows={3}
+                                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm placeholder-white/20 focus:outline-none focus:border-[#ffcc00]/40 transition-all duration-300 resize-none" />
+                                    {description && (
+                                        <p className="text-[11px] text-white/20 mt-1 ml-1">{description.length}/500</p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -339,12 +354,15 @@ const AdminDashboard = ({ onLogout }) => {
                                                     <div className="flex items-center gap-2 mb-0.5">
                                                         <h3 className="font-bold text-white text-sm truncate">{product.title}</h3>
                                                         <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${product.type === 'course'
-                                                                ? 'text-blue-400 border-blue-400/30 bg-blue-400/10'
-                                                                : 'text-[#ffcc00] border-[#ffcc00]/30 bg-[#ffcc00]/10'
+                                                            ? 'text-blue-400 border-blue-400/30 bg-blue-400/10'
+                                                            : 'text-[#ffcc00] border-[#ffcc00]/30 bg-[#ffcc00]/10'
                                                             }`}>
                                                             {product.type || 'ebook'}
                                                         </span>
                                                     </div>
+                                                    {product.description && (
+                                                        <p className="text-white/30 text-xs mt-0.5 line-clamp-1">{product.description}</p>
+                                                    )}
                                                     <p className="text-[#ffcc00] text-sm font-bold">
                                                         ₹{(product.pricePaise / 100).toFixed(0)}
                                                         <span className="text-white/20 font-normal ml-2 text-xs">({product.pricePaise} paise)</span>
