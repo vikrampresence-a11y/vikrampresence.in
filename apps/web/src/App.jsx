@@ -16,6 +16,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import ThankYouPage from './pages/ThankYouPage';
+import ShortLinkPage from './pages/ShortLinkPage';
 import AdminPage from './pages/AdminPage';
 import { Toaster } from '@/components/ui/toaster';
 import { PaymentProvider } from '@/context/PaymentContext.jsx';
@@ -49,6 +50,9 @@ function App() {
 
               {/* Secret Admin Portal — No Header/Footer */}
               <Route path="/admin" element={<AdminPage />} />
+
+              {/* Short branded link from SMS */}
+              <Route path="/t/:paymentId" element={<ShortLinkPage />} />
             </Routes>
           </main>
           <Footer />
