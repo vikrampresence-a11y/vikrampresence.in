@@ -30,17 +30,17 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     }, []);
 
     // Call delivery API (fire-and-forget)
-    // Call email delivery via PHP relay (same domain, works on Hostinger)
+    // Call Email + SMS delivery via PHP relay (same domain, works on Hostinger)
     const triggerDelivery = async (paymentId) => {
         const results = { emailSent: false, smsSent: false };
 
-        // Send email via PHP relay
         try {
             const res = await fetch('/api/send-email.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email,
+                    phone,
                     productName,
                     driveLink,
                     paymentId,
@@ -48,9 +48,10 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
             });
             const data = await res.json();
             results.emailSent = data.emailSent || false;
-            console.log('Email delivery:', data);
+            results.smsSent = data.smsSent || false;
+            console.log('Delivery result:', data);
         } catch (err) {
-            console.error('Email delivery error:', err);
+            console.error('Delivery error:', err);
         }
 
         return results;
