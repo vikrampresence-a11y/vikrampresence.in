@@ -30,27 +30,30 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     }, []);
 
     // Call delivery API (fire-and-forget)
+    // Call email delivery via PHP relay (same domain, works on Hostinger)
     const triggerDelivery = async (paymentId) => {
+        const results = { emailSent: false, smsSent: false };
+
+        // Send email via PHP relay
         try {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-            const res = await fetch(`${apiBase}/deliver-product`, {
+            const res = await fetch('/api/send-email.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email,
-                    phone,
                     productName,
                     driveLink,
                     paymentId,
                 }),
             });
             const data = await res.json();
-            console.log('Delivery result:', data);
-            return data;
+            results.emailSent = data.emailSent || false;
+            console.log('Email delivery:', data);
         } catch (err) {
-            console.error('Delivery API error:', err);
-            return { emailSent: false, smsSent: false };
+            console.error('Email delivery error:', err);
         }
+
+        return results;
     };
 
     const handleClick = () => {
