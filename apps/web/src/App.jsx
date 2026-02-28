@@ -16,6 +16,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import ThankYouPage from './pages/ThankYouPage';
+import AdminPage from './pages/AdminPage';
 import { Toaster } from '@/components/ui/toaster';
 import { PaymentProvider } from '@/context/PaymentContext.jsx';
 
@@ -46,6 +47,9 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
               <Route path="/refund-policy" element={<RefundPolicyPage />} />
+
+              {/* Secret Admin Portal — No Header/Footer */}
+              <Route path="/admin" element={<AdminPage />} />
             </Routes>
           </main>
           <Footer />
