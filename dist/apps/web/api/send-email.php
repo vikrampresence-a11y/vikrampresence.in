@@ -139,10 +139,9 @@ try {
             // Point 7-10: Construct SMS message (optimized for SMS billing segments)
             $smsMessage = "Payment Successful! Thanks for trusting Vikram Presence. Check your email for the drive link. - Vikram Presence";
 
-            // Point 15-16: Fast2SMS v3 payload
+            // Point 15-16: Fast2SMS Quick SMS payload
             $smsPayload = json_encode([
-                'route'     => 'v3',
-                'sender_id' => 'TXTIND',
+                'route'     => 'q',
                 'message'   => $smsMessage,
                 'language'  => 'english',
                 'flash'     => 0,
