@@ -103,15 +103,21 @@ try {
 
     $emailResponse = curl_exec($ch);
     $emailHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
 
-    if ($emailHttpCode >= 200 && $emailHttpCode < 300) {
+    if ($curlError) {
+        $results['emailDebug'] = "CURL Error: $curlError";
+        error_log("[DELIVERY] ❌ Email curl error: $curlError");
+    } elseif ($emailHttpCode >= 200 && $emailHttpCode < 300) {
         $results['emailSent'] = true;
         error_log("[DELIVERY] ✅ Email sent to $email");
     } else {
+        $results['emailDebug'] = "HTTP $emailHttpCode: $emailResponse";
         error_log("[DELIVERY] ❌ Email failed (HTTP $emailHttpCode): $emailResponse");
     }
 } catch (Exception $e) {
+    $results['emailDebug'] = 'Exception: ' . $e->getMessage();
     error_log("[DELIVERY] ❌ Email exception: " . $e->getMessage());
 }
 
