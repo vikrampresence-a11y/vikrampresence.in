@@ -25,7 +25,6 @@ function App() {
     <PaymentProvider>
       <Router>
         <Helmet>
-          <link rel="icon" type="image/png" href="https://horizons-cdn.hostinger.com/b97f6cc3-989b-4f74-bc63-5ca3ca17eb47/be8b4dcc5a2a5cf25f645f196e119fda.png" />
           <title>Vikram Presence | Digital Products</title>
           <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
         </Helmet>

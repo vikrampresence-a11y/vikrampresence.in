@@ -1,16 +1,18 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<link rel="icon" href="/favicon.ico" />
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Vikram Presence</title>
-		<script type="module" crossorigin src="/assets/index-DTmAgbjA.js"></script>
-		<link rel="stylesheet" crossorigin href="/assets/index-qMAHlq71.css">
-		<script type="module">
+
+<head>
+	<meta charset="UTF-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<link rel="icon" href="/favicon.ico" />
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Vikram Presence</title>
+  <script type="module" crossorigin src="/assets/index-CJyaMr1V.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-qMAHlq71.css">
+  <script type="module">
 window.onerror = (message, source, lineno, colno, errorObj) => {
 	const errorDetails = errorObj ? JSON.stringify({
 		name: errorObj.name,
@@ -28,7 +30,7 @@ window.onerror = (message, source, lineno, colno, errorObj) => {
 	}, '*');
 };
 </script>
-		<script type="module">
+  <script type="module">
 const observer = new MutationObserver((mutations) => {
 	for (const mutation of mutations) {
 		for (const addedNode of mutation.addedNodes) {
@@ -74,7 +76,7 @@ function handleViteOverlay(node) {
 	}
 }
 </script>
-		<script type="module">
+  <script type="module">
 const originalConsoleError = console.error;
 console.error = function(...args) {
 	originalConsoleError.apply(console, args);
@@ -99,7 +101,7 @@ console.error = function(...args) {
 	}, '*');
 };
 </script>
-		<script type="module">
+  <script type="module">
 const originalFetch = window.fetch;
 
 window.fetch = function(...args) {
@@ -137,7 +139,7 @@ window.fetch = function(...args) {
 		});
 };
 </script>
-		<script type="module">
+  <script type="module">
 if (window.navigation && window.self !== window.top) {
 	window.navigation.addEventListener('navigate', (event) => {
 		const url = event.destination.url;
@@ -161,8 +163,10 @@ if (window.navigation && window.self !== window.top) {
 	});
 }
 </script>
-	</head>
-	<body>
-		<div id="root"></div>
-	</body>
+</head>
+
+<body>
+	<div id="root"></div>
+</body>
+
 </html>
