@@ -1,37 +1,60 @@
+import nodemailer from 'nodemailer';
 import logger from '../utils/logger.js';
 
 // ═══════════════════════════════════════════════
 // DELIVERY CONTROLLER
-// Sends Email (Resend) + SMS (Fast2SMS) after purchase
+// Sends Email (Nodemailer / Gmail SMTP) after purchase
 // ═══════════════════════════════════════════════
+
+// ─── Gmail SMTP Transporter (Singleton) ──────────────────────────────
+let gmailTransporter = null;
+
+const getGmailTransporter = () => {
+  if (gmailTransporter) return gmailTransporter;
+
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+
+  if (!gmailUser || !gmailAppPassword) {
+    logger.error('Gmail credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in .env');
+    throw new Error('Gmail SMTP credentials not configured.');
+  }
+
+  gmailTransporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
+    },
+  });
+
+  logger.info('Gmail SMTP transporter initialized for delivery');
+  return gmailTransporter;
+};
 
 /**
  * POST /deliver-product
  * Body: { email, phone, productName, driveLink, paymentId }
  */
 export const deliverProduct = async (req, res) => {
-    const { email, phone, productName, driveLink, paymentId } = req.body;
+  const { email, phone, productName, driveLink, paymentId } = req.body;
 
-    if (!email || !productName || !driveLink) {
-        return res.status(400).json({
-            error: 'email, productName, and driveLink are required',
-        });
-    }
+  if (!email || !productName || !driveLink) {
+    return res.status(400).json({
+      error: 'email, productName, and driveLink are required',
+    });
+  }
 
-    const results = { emailSent: false, smsSent: false };
+  const results = { emailSent: false };
 
-    // ── 1. SEND EMAIL via Resend ──
-    try {
-        const resendKey = process.env.RESEND_API_KEY;
-        if (!resendKey) {
-            logger.warn('RESEND_API_KEY not set — skipping email');
-        } else {
-            const { Resend } = await import('resend');
-            const resend = new Resend(resendKey);
+  // ── SEND EMAIL via Nodemailer (Gmail SMTP) ──
+  try {
+    const transporter = getGmailTransporter();
+    const gmailUser = process.env.GMAIL_USER;
 
-            const fromEmail = process.env.RESEND_FROM_EMAIL || 'Vikram Presence <onboarding@resend.dev>';
-
-            const htmlBody = `
+    const htmlBody = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -81,69 +104,23 @@ export const deliverProduct = async (req, res) => {
 </body>
 </html>`;
 
-            await resend.emails.send({
-                from: fromEmail,
-                to: [email],
-                subject: `Your ${productName} is ready! 🎉 — Vikram Presence`,
-                html: htmlBody,
-            });
-
-            results.emailSent = true;
-            logger.info(`✅ Email sent to ${email} for "${productName}"`);
-        }
-    } catch (err) {
-        logger.error('❌ Email delivery failed:', err.message || err);
-    }
-
-    // ── 2. SEND SMS via Fast2SMS ──
-    try {
-        const fast2smsKey = process.env.FAST2SMS_API_KEY;
-        if (!fast2smsKey) {
-            logger.warn('FAST2SMS_API_KEY not set — skipping SMS');
-        } else if (!phone) {
-            logger.warn('No phone number provided — skipping SMS');
-        } else {
-            // Clean phone number: remove +91, spaces, dashes
-            const cleanPhone = phone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
-
-            if (cleanPhone.length !== 10) {
-                logger.warn(`Invalid phone number: ${phone} → cleaned: ${cleanPhone}`);
-            } else {
-                const smsMessage = `Payment successful! Please check your email for the Ebooks/Podcasts. - Vikram Presence`;
-
-                const smsResponse = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-                    method: 'POST',
-                    headers: {
-                        'authorization': fast2smsKey,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        route: 'q',
-                        message: smsMessage,
-                        language: 'english',
-                        flash: 0,
-                        numbers: cleanPhone,
-                    }),
-                });
-
-                const smsData = await smsResponse.json();
-
-                if (smsData.return === true) {
-                    results.smsSent = true;
-                    logger.info(`✅ SMS sent to ${cleanPhone}`);
-                } else {
-                    logger.error('❌ Fast2SMS error:', smsData.message || smsData);
-                }
-            }
-        }
-    } catch (err) {
-        logger.error('❌ SMS delivery failed:', err.message || err);
-    }
-
-    // ── Response ──
-    res.json({
-        success: true,
-        message: 'Delivery processed',
-        ...results,
+    await transporter.sendMail({
+      from: `Vikram Presence <${gmailUser}>`,
+      to: email,
+      subject: `Your ${productName} is ready! 🎉 — Vikram Presence`,
+      html: htmlBody,
     });
+
+    results.emailSent = true;
+    logger.info(`✅ Delivery email sent to ${email} for "${productName}"`);
+  } catch (err) {
+    logger.error('❌ Email delivery failed:', err.message || err);
+  }
+
+  // ── Response ──
+  res.json({
+    success: true,
+    message: 'Delivery processed',
+    ...results,
+  });
 };

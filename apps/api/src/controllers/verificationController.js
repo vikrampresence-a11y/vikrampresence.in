@@ -1,224 +1,180 @@
 /**
  * ===================================================================
- * VERIFICATION CONTROLLER — Email MX + Phone OTP
+ * VERIFICATION CONTROLLER — Email OTP via Nodemailer (Gmail SMTP)
  * ===================================================================
  *
- * Three handlers:
- *   1. verifyEmail  — Regex + DNS MX record check (no OTP needed)
- *   2. sendOtp      — Generate 6-digit OTP, store in memory, send via Fast2SMS
- *   3. verifyOtp    — Compare entered OTP, delete on match
+ * Two handlers:
+ *   1. sendEmailOtp   — Generate 4-digit OTP, store in memory, send via Gmail SMTP
+ *   2. verifyEmailOtp — Compare entered OTP, delete on match (prevent reuse)
  *
  * ===================================================================
  */
 
-import dns from 'dns';
+import nodemailer from 'nodemailer';
 import logger from '../utils/logger.js';
 
 // ─── In-Memory OTP Store ─────────────────────────────────────────────
-// Map<phone, { otp: string, expiresAt: number, timer: NodeJS.Timeout }>
-const otpStore = new Map();
+// Map<email, { otp: string, expiresAt: number, timer: NodeJS.Timeout }>
+const emailOtpStore = new Map();
 
 // ─── Constants ───────────────────────────────────────────────────────
 const OTP_TTL_MS = 5 * 60 * 1000;  // 5 minutes
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 4;
 
-// Strict email regex (RFC 5322 simplified)
+// Strict email regex
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
-// Indian phone: exactly 10 digits (after stripping +91 / 91 prefix)
-const PHONE_REGEX = /^[6-9]\d{9}$/;
+// ─── Gmail SMTP Transporter (Singleton) ──────────────────────────────
+let gmailTransporter = null;
 
-// ===================================================================
-// 1. VERIFY EMAIL — Regex + DNS MX Lookup
-// ===================================================================
-/**
- * POST /verification/verify-email
- * Body: { email }
- *
- * Steps:
- *   1. Validate email format with regex
- *   2. Extract domain
- *   3. Query DNS MX records for the domain
- *   4. If MX records exist → email domain is real
- */
-export const verifyEmail = async (req, res) => {
-    const { email } = req.body;
+const getGmailTransporter = () => {
+    if (gmailTransporter) return gmailTransporter;
 
-    if (!email) {
-        return res.status(400).json({ valid: false, error: 'Email is required' });
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+
+    if (!gmailUser || !gmailAppPassword) {
+        logger.error('Gmail credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in .env');
+        throw new Error('Gmail SMTP credentials not configured.');
     }
 
-    // Step 1: Regex validation
-    if (!EMAIL_REGEX.test(email)) {
-        logger.info(`Email format invalid: ${email}`);
-        return res.status(200).json({ valid: false, error: 'Invalid email format' });
-    }
+    gmailTransporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: gmailUser,
+            pass: gmailAppPassword,
+        },
+    });
 
-    // Step 2: Extract domain
-    const domain = email.split('@')[1];
-    if (!domain) {
-        return res.status(200).json({ valid: false, error: 'Invalid email domain' });
-    }
-
-    // Step 3: DNS MX record lookup
-    try {
-        const mxRecords = await dns.promises.resolveMx(domain);
-
-        if (mxRecords && mxRecords.length > 0) {
-            logger.info(`✅ Email domain verified: ${domain} (${mxRecords.length} MX records)`);
-            return res.status(200).json({ valid: true });
-        } else {
-            logger.info(`❌ No MX records for domain: ${domain}`);
-            return res.status(200).json({ valid: false, error: 'Email domain does not accept mail' });
-        }
-    } catch (dnsError) {
-        // ENOTFOUND, ENODATA, etc. — domain doesn't exist or has no MX
-        logger.info(`❌ DNS lookup failed for ${domain}: ${dnsError.code || dnsError.message}`);
-        return res.status(200).json({ valid: false, error: 'Email domain is not valid' });
-    }
+    logger.info('Gmail SMTP transporter initialized');
+    return gmailTransporter;
 };
 
 
 // ===================================================================
-// 2. SEND OTP — Generate + Store + Fast2SMS
+// 1. SEND EMAIL OTP
 // ===================================================================
 /**
- * POST /verification/send-otp
- * Body: { phone }
- *
- * Steps:
- *   1. Validate phone number format
- *   2. Generate a secure 6-digit OTP
- *   3. Store OTP in memory with 5-minute TTL
- *   4. Send OTP via Fast2SMS
+ * POST /verification/send-email-otp
+ * Body: { email }
  */
-export const sendOtp = async (req, res) => {
-    const { phone } = req.body;
+export const sendEmailOtp = async (req, res) => {
+    const { email } = req.body;
 
-    if (!phone) {
-        return res.status(400).json({ success: false, error: 'Phone number is required' });
+    if (!email) {
+        return res.status(400).json({ success: false, error: 'Email is required' });
     }
-
-    // Clean phone: remove +91, 91 prefix, spaces, dashes
-    const cleanPhone = phone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
 
     // Validate format
-    if (!PHONE_REGEX.test(cleanPhone)) {
-        return res.status(400).json({
-            success: false,
-            error: 'Invalid phone number. Enter a valid 10-digit Indian mobile number.',
-        });
+    if (!EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ success: false, error: 'Invalid email format' });
     }
 
-    // Generate 6-digit OTP
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    // Generate 4-digit OTP
+    const otp = String(Math.floor(1000 + Math.random() * 9000));
 
-    // Clear any existing OTP for this phone
-    if (otpStore.has(cleanPhone)) {
-        clearTimeout(otpStore.get(cleanPhone).timer);
-        otpStore.delete(cleanPhone);
+    // Clear any existing OTP for this email
+    if (emailOtpStore.has(email)) {
+        clearTimeout(emailOtpStore.get(email).timer);
+        emailOtpStore.delete(email);
     }
 
     // Store OTP with TTL
     const timer = setTimeout(() => {
-        otpStore.delete(cleanPhone);
-        logger.info(`OTP expired and removed for: ${cleanPhone}`);
+        emailOtpStore.delete(email);
+        logger.info(`Email OTP expired for: ${email}`);
     }, OTP_TTL_MS);
 
-    otpStore.set(cleanPhone, {
+    emailOtpStore.set(email, {
         otp,
         expiresAt: Date.now() + OTP_TTL_MS,
         timer,
     });
 
-    logger.info(`OTP generated for ${cleanPhone}: ${otp}`);
+    logger.info(`Email OTP generated for ${email}: ${otp}`);
 
-    // Send via Fast2SMS
-    const fast2smsKey = process.env.FAST2SMS_API_KEY;
-    if (!fast2smsKey || fast2smsKey === 'YOUR_FAST2SMS_API_KEY_HERE') {
-        logger.warn('FAST2SMS_API_KEY not configured — OTP stored but not sent');
-        return res.status(200).json({
-            success: true,
-            message: 'OTP generated (SMS delivery not configured)',
-        });
-    }
-
+    // Send via Gmail SMTP
     try {
-        const smsMessage = `Your Vikram Presence verification OTP is ${otp}. It is valid for 5 minutes.`;
+        const transporter = getGmailTransporter();
+        const gmailUser = process.env.GMAIL_USER;
 
-        const smsResponse = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-            method: 'POST',
-            headers: {
-                'authorization': fast2smsKey,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                route: 'q',
-                message: smsMessage,
-                language: 'english',
-                flash: 0,
-                numbers: cleanPhone,
-            }),
+        await transporter.sendMail({
+            from: `Vikram Presence <${gmailUser}>`,
+            to: email,
+            subject: 'Your Vikram Presence Verification Code',
+            html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#000000;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:500px;margin:0 auto;padding:40px 20px;">
+    <div style="text-align:center;padding:20px 0;border-bottom:1px solid #222;">
+      <h1 style="color:#FFD700;font-size:24px;margin:0;letter-spacing:2px;">VIKRAM PRESENCE</h1>
+    </div>
+    <div style="padding:40px 0;text-align:center;">
+      <p style="color:#999;font-size:13px;text-transform:uppercase;letter-spacing:3px;margin:0 0 20px;">Verification Code</p>
+      <div style="background:#111;border:2px solid #FFD700;border-radius:16px;padding:30px;display:inline-block;">
+        <span style="color:#FFD700;font-size:42px;font-weight:800;letter-spacing:12px;font-family:monospace;">${otp}</span>
+      </div>
+      <p style="color:#ccc;font-size:14px;margin:25px 0 0;line-height:1.6;">
+        This code is valid for <strong style="color:#FFD700;">5 minutes</strong>.<br>
+        Do not share this code with anyone.
+      </p>
+    </div>
+    <div style="border-top:1px solid #222;padding:20px 0;text-align:center;">
+      <p style="color:#444;font-size:10px;margin:0;">If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  </div>
+</body>
+</html>`,
         });
 
-        const smsData = await smsResponse.json();
+        logger.info(`✅ Email OTP sent to ${email}`);
+        return res.status(200).json({ success: true, message: 'OTP sent to your email' });
 
-        if (smsData.return === true) {
-            logger.info(`✅ OTP SMS sent to ${cleanPhone}`);
-            return res.status(200).json({ success: true, message: 'OTP sent successfully' });
-        } else {
-            logger.error('❌ Fast2SMS error:', smsData.message || smsData);
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to send OTP. Please try again.',
-            });
-        }
-    } catch (smsError) {
-        logger.error('❌ Fast2SMS request failed:', smsError.message || smsError);
+    } catch (mailError) {
+        logger.error('❌ Gmail SMTP error:', mailError.message || mailError);
+        // Clean up the stored OTP since we couldn't send it
+        clearTimeout(emailOtpStore.get(email)?.timer);
+        emailOtpStore.delete(email);
         return res.status(500).json({
             success: false,
-            error: 'SMS service unavailable. Please try again later.',
+            error: 'Failed to send verification email. Please try again.',
         });
     }
 };
 
 
 // ===================================================================
-// 3. VERIFY OTP — Compare + Delete on Match
+// 2. VERIFY EMAIL OTP
 // ===================================================================
 /**
- * POST /verification/verify-otp
- * Body: { phone, otp }
- *
- * Steps:
- *   1. Clean and validate phone
- *   2. Look up stored OTP
- *   3. Compare — if match, delete OTP (prevent reuse)
+ * POST /verification/verify-email-otp
+ * Body: { email, otp }
  */
-export const verifyOtp = async (req, res) => {
-    const { phone, otp } = req.body;
+export const verifyEmailOtp = async (req, res) => {
+    const { email, otp } = req.body;
 
-    if (!phone || !otp) {
-        return res.status(400).json({ verified: false, error: 'Phone and OTP are required' });
+    if (!email || !otp) {
+        return res.status(400).json({ verified: false, error: 'Email and OTP are required' });
     }
 
-    // Clean phone
-    const cleanPhone = phone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
-
     // Look up stored OTP
-    const storedEntry = otpStore.get(cleanPhone);
+    const storedEntry = emailOtpStore.get(email);
 
     if (!storedEntry) {
         return res.status(400).json({
             verified: false,
-            error: 'No OTP found for this number. Please request a new one.',
+            error: 'No OTP found for this email. Please request a new one.',
         });
     }
 
     // Check expiry
     if (Date.now() > storedEntry.expiresAt) {
         clearTimeout(storedEntry.timer);
-        otpStore.delete(cleanPhone);
+        emailOtpStore.delete(email);
         return res.status(400).json({
             verified: false,
             error: 'OTP has expired. Please request a new one.',
@@ -233,14 +189,14 @@ export const verifyOtp = async (req, res) => {
         });
     }
 
-    // ✅ Match — delete OTP to prevent reuse
+    // ✅ Match — delete to prevent reuse
     clearTimeout(storedEntry.timer);
-    otpStore.delete(cleanPhone);
+    emailOtpStore.delete(email);
 
-    logger.info(`✅ OTP verified for ${cleanPhone}`);
+    logger.info(`✅ Email OTP verified for ${email}`);
 
     return res.status(200).json({
         verified: true,
-        message: 'Phone number verified successfully',
+        message: 'Email verified successfully',
     });
 };
