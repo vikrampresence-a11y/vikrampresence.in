@@ -48,7 +48,8 @@ export const PaymentProvider = ({ children }) => {
           productId: product.id,
           productTitle: product.name || product.title,
           customerEmail: customerDetails.email,
-          customerName: customerDetails.name || 'Guest User'
+          customerName: customerDetails.name || 'Guest User',
+          customerPhone: customerDetails.phone || '',
         })
       });
 

@@ -6,6 +6,7 @@ import whatsappRouter from './whatsapp.js';
 import paymentRouter from './payment.js';
 import ebooksRouter from './ebooks.js';
 import deliveryRouter from './delivery.js';
+import verificationRouter from './verification.js';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ export default () => {
     router.use('/whatsapp', whatsappRouter);
     router.use('/payment', paymentRouter);
     router.use('/ebooks', ebooksRouter);
+    router.use('/verification', verificationRouter);
     router.use('/', deliveryRouter);
 
     return router;

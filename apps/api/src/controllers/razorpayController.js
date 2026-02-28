@@ -52,11 +52,27 @@ const getRazorpayInstance = () => {
  */
 export const createOrder = async (req, res) => {
     const { productId, userId, amount, currency = 'INR', receipt, description,
-        productTitle, customerEmail, customerName } = req.body;
+        productTitle, customerEmail, customerName, customerPhone } = req.body;
 
     // ── Step 1: Validate required fields ──
     if (!productId) {
         return res.status(400).json({ error: 'productId is required' });
+    }
+
+    // ── Step 1b: Server-side email + phone format validation ──
+    // Prevents tech-savvy users from bypassing the frontend disabled button
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (customerEmail && !emailRegex.test(customerEmail)) {
+        logger.warn(`Order rejected: invalid email format — ${customerEmail}`);
+        return res.status(400).json({ error: 'Invalid email format. Please verify your email.' });
+    }
+
+    if (customerPhone) {
+        const cleanPhone = customerPhone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+        if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+            logger.warn(`Order rejected: invalid phone format — ${customerPhone}`);
+            return res.status(400).json({ error: 'Invalid phone number. Enter a valid 10-digit Indian mobile number.' });
+        }
     }
 
     let verifiedPrice = amount; // Fallback to frontend amount if DB lookup fails
