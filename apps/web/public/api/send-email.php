@@ -22,7 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ── API Keys ──
 $RESEND_API_KEY  = 're_Kodasp4R_6yoTk5VwaTxYrGovqvmUPzWv';
 $FAST2SMS_KEY    = 'U8nhADIKyGtkqmjxu74JZCYWaRQ03BEo6iON9z5lHrf12gLFMepavm4t9W51sjBVfFqGlb6TJC2SUYxd';
-$FROM_EMAIL      = 'Vikram Presence <onboarding@resend.dev>';
+$FROM_EMAIL      = 'Vikram Presence <hello@vikrampresence.shop>';
+$REPLY_TO        = 'vikrampresence3280@gmail.com';
 $SITE_URL        = 'https://vikrampresence.shop';
 
 // ── Parse input ──
@@ -43,6 +44,7 @@ $results = ['emailSent' => false, 'smsSent' => false];
 
 // ═══════════════════════════════════════════════
 // PHASE 1: SEND EMAIL via Resend API
+// Verified domain: vikrampresence.shop
 // ═══════════════════════════════════════════════
 try {
     $htmlBody = '<!DOCTYPE html>
@@ -80,10 +82,11 @@ try {
 </html>';
 
     $emailPayload = json_encode([
-        'from'    => $FROM_EMAIL,
-        'to'      => [$email],
-        'subject' => "Your $productName is ready! 🎉 — Vikram Presence",
-        'html'    => $htmlBody,
+        'from'     => $FROM_EMAIL,
+        'to'       => [$email],
+        'reply_to' => $REPLY_TO,
+        'subject'  => "Your Product is Ready: $productName! 🎉",
+        'html'     => $htmlBody,
     ]);
 
     $ch = curl_init('https://api.resend.com/emails');
