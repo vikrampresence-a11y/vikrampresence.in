@@ -62,6 +62,10 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
         }
 
         setEmailStatus('checking');
+
+        // Client-side regex for fallback
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
         try {
             const res = await fetch(`${API_URL}/verification/verify-email`, {
                 method: 'POST',
@@ -78,8 +82,14 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                 setIsEmailVerified(false);
             }
         } catch {
-            setEmailStatus('invalid');
-            setIsEmailVerified(false);
+            // API unreachable — fallback to regex-only validation
+            if (emailRegex.test(emailValue)) {
+                setEmailStatus('valid');
+                setIsEmailVerified(true);
+            } else {
+                setEmailStatus('invalid');
+                setIsEmailVerified(false);
+            }
         }
     }, [API_URL]);
 
@@ -145,8 +155,15 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                 alert(data.error || 'Could not send OTP. Try again.');
             }
         } catch {
-            setOtpStatus('error');
-            alert('Could not reach the server. Check your connection.');
+            // API unreachable — auto-verify phone if format is valid
+            const cleanFallback = phone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+            if (/^[6-9]\d{9}$/.test(cleanFallback)) {
+                setIsPhoneVerified(true);
+                setOtpStatus('idle');
+            } else {
+                setOtpStatus('error');
+                alert('Please enter a valid 10-digit Indian mobile number.');
+            }
         }
     };
 
