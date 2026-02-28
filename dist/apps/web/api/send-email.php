@@ -47,35 +47,47 @@ $results = ['emailSent' => false, 'smsSent' => false];
 // Verified domain: vikrampresence.shop
 // ═══════════════════════════════════════════════
 try {
+    // Plain text version (critical for spam avoidance)
+    $textBody = "Hi there,\n\nThank you for purchasing $productName from Vikram Presence.\n\nAccess your product here: $driveLink\n\n" . ($paymentId ? "Payment ID: $paymentId\n\n" : "") . "If you have any questions, reply to this email.\n\nBest,\nVikram Presence\nhttps://vikrampresence.shop";
+
     $htmlBody = '<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:Helvetica Neue,Arial,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;padding:30px 0;border-bottom:1px solid #222;">
-      <h1 style="color:#FFD700;font-size:28px;margin:0;letter-spacing:2px;">VIKRAM PRESENCE</h1>
-    </div>
-    <div style="padding:40px 0;text-align:center;">
-      <div style="background:#111;border:2px solid #FFD700;border-radius:16px;padding:30px;margin-bottom:30px;">
-        <p style="color:#FFD700;font-size:12px;letter-spacing:3px;text-transform:uppercase;margin:0 0 10px;">Payment Successful</p>
-        <h2 style="color:#ffffff;font-size:24px;margin:0 0 5px;">' . htmlspecialchars($productName) . '</h2>
-        ' . ($paymentId ? '<p style="color:#666;font-size:11px;margin:5px 0 0;font-family:monospace;">Payment ID: ' . htmlspecialchars($paymentId) . '</p>' : '') . '
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f9f9f9;font-family:Georgia,Times,serif;">
+  <div style="max-width:580px;margin:0 auto;padding:40px 20px;">
+    <div style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      
+      <div style="background:#1a1a1a;padding:28px;text-align:center;">
+        <h1 style="color:#FFD700;font-size:22px;margin:0;letter-spacing:1px;font-weight:600;">Vikram Presence</h1>
       </div>
-      <p style="color:#cccccc;font-size:16px;line-height:1.6;margin:0 0 30px;">
-        Thank you for your purchase! Click the button below to access your product.
-      </p>
-      <a href="' . htmlspecialchars($driveLink) . '" 
-         style="display:inline-block;background:#FFD700;color:#000000;padding:18px 48px;font-size:16px;font-weight:800;text-decoration:none;border-radius:50px;letter-spacing:2px;text-transform:uppercase;">
-        ACCESS YOUR PRODUCT
-      </a>
-      <p style="color:#666;font-size:13px;margin:25px 0 0;line-height:1.5;">
-        You can also copy this link:<br>
-        <a href="' . htmlspecialchars($driveLink) . '" style="color:#FFD700;word-break:break-all;">' . htmlspecialchars($driveLink) . '</a>
-      </p>
-    </div>
-    <div style="border-top:1px solid #222;padding:25px 0;text-align:center;">
-      <p style="color:#444;font-size:11px;margin:0;">Save this email — it is your permanent access to the product.</p>
-      <p style="color:#333;font-size:10px;margin:10px 0 0;">© Vikram Presence. All rights reserved.</p>
+      
+      <div style="padding:36px 32px;text-align:center;">
+        <p style="color:#2d2d2d;font-size:15px;line-height:1.7;margin:0 0 8px;">Hi there,</p>
+        <p style="color:#2d2d2d;font-size:15px;line-height:1.7;margin:0 0 24px;">
+          Thank you for purchasing <strong>' . htmlspecialchars($productName) . '</strong>. Your product is ready to access.
+        </p>
+        
+        <a href="' . htmlspecialchars($driveLink) . '" 
+           style="display:inline-block;background:#1a1a1a;color:#FFD700;padding:14px 36px;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">
+          Access your product
+        </a>
+        
+        <p style="color:#888;font-size:13px;margin:24px 0 0;line-height:1.5;">
+          Or copy this link: <a href="' . htmlspecialchars($driveLink) . '" style="color:#1a1a1a;">' . htmlspecialchars($driveLink) . '</a>
+        </p>
+        
+        ' . ($paymentId ? '<p style="color:#aaa;font-size:11px;margin:16px 0 0;">Payment ref: ' . htmlspecialchars($paymentId) . '</p>' : '') . '
+      </div>
+      
+      <div style="border-top:1px solid #eee;padding:20px 32px;text-align:center;">
+        <p style="color:#999;font-size:11px;margin:0;line-height:1.5;">
+          This email confirms your purchase. Save it for your records.<br>
+          Questions? Reply to this email.
+        </p>
+        <p style="color:#ccc;font-size:10px;margin:10px 0 0;">
+          Vikram Presence &middot; <a href="https://vikrampresence.shop" style="color:#ccc;">vikrampresence.shop</a>
+        </p>
+      </div>
     </div>
   </div>
 </body>
@@ -85,8 +97,9 @@ try {
         'from'     => $FROM_EMAIL,
         'to'       => [$email],
         'reply_to' => $REPLY_TO,
-        'subject'  => "Your Product is Ready: $productName! 🎉",
+        'subject'  => "Your $productName is ready - Vikram Presence",
         'html'     => $htmlBody,
+        'text'     => $textBody,
     ]);
 
     $ch = curl_init('https://api.resend.com/emails');
