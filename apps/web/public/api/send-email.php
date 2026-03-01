@@ -1,7 +1,7 @@
 <?php
 // ═══════════════════════════════════════════════════════════════
-// DELIVERY SYSTEM — Email (Resend) + SMS (Fast2SMS)
-// 20-Point Zero-Fail Architecture v2
+// DELIVERY SYSTEM — Gmail SMTP (PHPMailer-style) + Fast2SMS
+// Resend PURGED. Pure Gmail SMTP via fsockopen/mail().
 // ═══════════════════════════════════════════════════════════════
 
 header('Content-Type: application/json');
@@ -19,12 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// ── API Keys ──
-$RESEND_API_KEY  = 're_Kodasp4R_6yoTk5VwaTxYrGovqvmUPzWv';
-$FAST2SMS_KEY    = 'U8nhADIKyGtkqmjxu74JZCYWaRQ03BEo6iON9z5lHrf12gLFMepavm4t9W51sjBVfFqGlb6TJC2SUYxd';
-$FROM_EMAIL      = 'Vikram Presence <hello@vikrampresence.shop>';
-$REPLY_TO        = 'vikrampresence3280@gmail.com';
-$SITE_URL        = 'https://vikrampresence.shop';
+// ── Gmail SMTP Credentials ──
+$GMAIL_USER     = 'vikramyeragadindla@gmail.com';
+$GMAIL_APP_PASS = 'bbbl jycl ypov xpjy';
+$FROM_NAME      = 'Vikram Presence';
+$REPLY_TO       = 'vikramyeragadindla@gmail.com';
+$SITE_URL       = 'https://vikrampresence.shop';
+
+// ── Fast2SMS ──
+$FAST2SMS_KEY   = 'U8nhADIKyGtkqmjxu74JZCYWaRQ03BEo6iON9z5lHrf12gLFMepavm4t9W51sjBVfFqGlb6TJC2SUYxd';
 
 // ── Parse input ──
 $input = json_decode(file_get_contents('php://input'), true);
@@ -43,112 +46,93 @@ if (!$email || !$productName || !$driveLink) {
 $results = ['emailSent' => false, 'smsSent' => false];
 
 // ═══════════════════════════════════════════════
-// PHASE 1: SEND EMAIL via Resend API
-// Verified domain: vikrampresence.shop
+// PHASE 1: SEND EMAIL via Gmail SMTP
+// Using PHP's mail() with proper headers
 // ═══════════════════════════════════════════════
 try {
-    // Plain text version (critical for spam avoidance)
-    $textBody = "Hi there,\n\nThank you for purchasing $productName from Vikram Presence.\n\nAccess your product here: $driveLink\n\n" . ($paymentId ? "Payment ID: $paymentId\n\n" : "") . "If you have any questions, reply to this email.\n\nBest,\nVikram Presence\nhttps://vikrampresence.shop";
-
+    $subject = "Your $productName is Ready! 🎉 — Vikram Presence";
+    
     $htmlBody = '<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f9f9f9;font-family:Georgia,Times,serif;">
-  <div style="max-width:580px;margin:0 auto;padding:40px 20px;">
-    <div style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-      
-      <div style="background:#1a1a1a;padding:28px;text-align:center;">
-        <h1 style="color:#FFD700;font-size:22px;margin:0;letter-spacing:1px;font-weight:600;">Vikram Presence</h1>
-      </div>
-      
-      <div style="padding:36px 32px;text-align:center;">
-        <p style="color:#2d2d2d;font-size:15px;line-height:1.7;margin:0 0 8px;">Hi there,</p>
-        <p style="color:#2d2d2d;font-size:15px;line-height:1.7;margin:0 0 24px;">
-          Thank you for purchasing <strong>' . htmlspecialchars($productName) . '</strong>. Your product is ready to access.
-        </p>
-        
-        <a href="' . htmlspecialchars($driveLink) . '" 
-           style="display:inline-block;background:#1a1a1a;color:#FFD700;padding:14px 36px;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">
-          Access your product
-        </a>
-        
-        <p style="color:#888;font-size:13px;margin:24px 0 0;line-height:1.5;">
-          Or copy this link: <a href="' . htmlspecialchars($driveLink) . '" style="color:#1a1a1a;">' . htmlspecialchars($driveLink) . '</a>
-        </p>
-        
-        ' . ($paymentId ? '<p style="color:#aaa;font-size:11px;margin:16px 0 0;">Payment ref: ' . htmlspecialchars($paymentId) . '</p>' : '') . '
-      </div>
-      
-      <div style="border-top:1px solid #eee;padding:20px 32px;text-align:center;">
-        <p style="color:#999;font-size:11px;margin:0;line-height:1.5;">
-          This email confirms your purchase. Save it for your records.<br>
-          Questions? Reply to this email.
-        </p>
-        <p style="color:#ccc;font-size:10px;margin:10px 0 0;">
-          Vikram Presence &middot; <a href="https://vikrampresence.shop" style="color:#ccc;">vikrampresence.shop</a>
-        </p>
-      </div>
+<body style="margin:0;padding:0;background-color:#080808;font-family:\'Helvetica Neue\',Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    
+    <div style="text-align:center;padding:30px 0;border-bottom:1px solid #1c1c1c;">
+      <h1 style="color:#FFD700;font-size:24px;margin:0;letter-spacing:3px;text-transform:uppercase;">VIKRAM PRESENCE</h1>
+      <p style="color:#555;font-size:10px;margin:8px 0 0;letter-spacing:3px;text-transform:uppercase;">Digital Product Delivery</p>
     </div>
+
+    <div style="padding:40px 0;text-align:center;">
+      <div style="background:#0e0e0e;border:1px solid rgba(255,215,0,0.15);border-radius:16px;padding:30px;margin-bottom:30px;">
+        <div style="font-size:42px;margin-bottom:12px;">🎉</div>
+        <p style="color:#FFD700;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 12px;">Payment Successful</p>
+        <h2 style="color:#ffffff;font-size:22px;margin:0;letter-spacing:-0.5px;">' . htmlspecialchars($productName) . '</h2>
+        ' . ($paymentId ? '<p style="color:#444;font-size:10px;margin:8px 0 0;font-family:monospace;">Payment ID: ' . htmlspecialchars($paymentId) . '</p>' : '') . '
+      </div>
+
+      <p style="color:#999;font-size:15px;line-height:1.7;margin:0 0 30px;">
+        Thank you for your purchase! Click the button below to access your product instantly.
+      </p>
+
+      <a href="' . htmlspecialchars($driveLink) . '" 
+         style="display:inline-block;background:#FFD700;color:#000000;padding:16px 48px;font-size:14px;font-weight:800;text-decoration:none;border-radius:50px;letter-spacing:2px;text-transform:uppercase;">
+        ACCESS YOUR PRODUCT →
+      </a>
+
+      <p style="color:#555;font-size:12px;margin:25px 0 0;line-height:1.6;">
+        Direct link:<br>
+        <a href="' . htmlspecialchars($driveLink) . '" style="color:#FFD700;word-break:break-all;font-size:11px;">' . htmlspecialchars($driveLink) . '</a>
+      </p>
+    </div>
+
+    <div style="background:#0c0c0c;border:1px solid #1a1a1a;border-radius:12px;padding:20px;margin-bottom:20px;">
+      <p style="color:#666;font-size:11px;margin:0;text-align:center;">
+        Need help? Reply to this email or contact<br>
+        <a href="mailto:vikramyeragadindla@gmail.com" style="color:#FFD700;">vikramyeragadindla@gmail.com</a>
+      </p>
+    </div>
+
+    <div style="border-top:1px solid #1a1a1a;padding:25px 0;text-align:center;">
+      <p style="color:#333;font-size:10px;margin:0;letter-spacing:1px;">Save this email — it\'s your permanent product access.</p>
+      <p style="color:#222;font-size:9px;margin:8px 0 0;">© Vikram Presence. All rights reserved.</p>
+    </div>
+
   </div>
 </body>
 </html>';
 
-    $emailPayload = json_encode([
-        'from'     => $FROM_EMAIL,
-        'to'       => [$email],
-        'reply_to' => $REPLY_TO,
-        'subject'  => "Your $productName is ready - Vikram Presence",
-        'html'     => $htmlBody,
-        'text'     => $textBody,
-    ]);
-
-    $ch = curl_init('https://api.resend.com/emails');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $emailPayload,
-        CURLOPT_HTTPHEADER     => [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $RESEND_API_KEY,
-        ],
-        CURLOPT_TIMEOUT        => 15,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => 0,
-    ]);
-
-    $emailResponse = curl_exec($ch);
-    $emailHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    if ($curlError) {
-        $results['emailDebug'] = "CURL Error: $curlError";
-        error_log("[DELIVERY] ❌ Email curl error: $curlError");
-    } elseif ($emailHttpCode >= 200 && $emailHttpCode < 300) {
+    // ── Send via Gmail SMTP using cURL ──
+    $smtpResult = sendGmailSMTP($GMAIL_USER, $GMAIL_APP_PASS, $FROM_NAME, $email, $subject, $htmlBody, $REPLY_TO);
+    
+    if ($smtpResult === true) {
         $results['emailSent'] = true;
-        error_log("[DELIVERY] ✅ Email sent to $email");
+        error_log("[DELIVERY] ✅ Email sent to $email via Gmail SMTP");
     } else {
-        $results['emailDebug'] = "HTTP $emailHttpCode: $emailResponse";
-        error_log("[DELIVERY] ❌ Email failed (HTTP $emailHttpCode): $emailResponse");
+        error_log("[DELIVERY] ❌ Gmail SMTP failed: $smtpResult");
+        
+        // Fallback: try PHP mail()
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: $FROM_NAME <$GMAIL_USER>\r\n";
+        $headers .= "Reply-To: $REPLY_TO\r\n";
+        
+        if (mail($email, $subject, $htmlBody, $headers)) {
+            $results['emailSent'] = true;
+            error_log("[DELIVERY] ✅ Email sent to $email via PHP mail() fallback");
+        } else {
+            error_log("[DELIVERY] ❌ PHP mail() also failed for $email");
+        }
     }
 } catch (Exception $e) {
-    $results['emailDebug'] = 'Exception: ' . $e->getMessage();
     error_log("[DELIVERY] ❌ Email exception: " . $e->getMessage());
 }
 
 // ═══════════════════════════════════════════════
 // PHASE 2: SEND SMS via Fast2SMS API
-// 
-// Point 3: Exact message template
-// Point 7-8: Title truncation (max 18 chars)
-// Point 11: Short branded link
-// Point 13-15: Phone sanitization
-// Point 17-18: Non-blocking, fault-tolerant
 // ═══════════════════════════════════════════════
 try {
     if (!empty($phone) && !empty($FAST2SMS_KEY)) {
-
-        // ── Phone Sanitization (Points 13-15) ──
         $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
         if (strlen($cleanPhone) > 10) {
             $cleanPhone = substr($cleanPhone, -10);
@@ -157,21 +141,14 @@ try {
         if (strlen($cleanPhone) !== 10) {
             error_log("[DELIVERY] ⚠️ Invalid phone: '$phone' → '$cleanPhone'. Skipping SMS.");
         } else {
-
-            // ── Title Truncation (Points 7-8) ──
             $shortTitle = $productName;
             if (mb_strlen($shortTitle) > 18) {
                 $shortTitle = mb_substr($shortTitle, 0, 18) . '..';
             }
 
-            // ── Short Branded Link (Points 10-12) ──
             $shortLink = $SITE_URL . '/t/' . ($paymentId ?: 'success');
-
-            // ── Exact Message (Point 3) ──
-            // Format: "Thank you for purchasing [Book]! Access it here: [Link] - Vikram Presence"
             $smsMessage = "Thank you for purchasing {$shortTitle}! Access it here: {$shortLink} - Vikram Presence";
 
-            // ── Fast2SMS Payload (Point 16) ──
             $smsPayload = json_encode([
                 'route'    => 'q',
                 'message'  => $smsMessage,
@@ -200,26 +177,104 @@ try {
 
             if (isset($smsData['return']) && $smsData['return'] === true) {
                 $results['smsSent'] = true;
-                error_log("[DELIVERY] ✅ SMS sent to $cleanPhone: $smsMessage");
+                error_log("[DELIVERY] ✅ SMS sent to $cleanPhone");
             } else {
                 $errorMsg = $smsData['message'] ?? $smsResponse ?? 'Unknown';
                 error_log("[DELIVERY] ❌ Fast2SMS error (HTTP $smsHttpCode): $errorMsg");
             }
         }
-    } else {
-        if (empty($phone)) error_log("[DELIVERY] ⚠️ No phone — skipping SMS");
     }
 } catch (Exception $e) {
-    // Points 19-20: SMS failure NEVER crashes the API
     error_log("[DELIVERY] ❌ SMS exception: " . $e->getMessage());
 }
 
 // ═══════════════════════════════════════════════
-// RESPONSE — Always 200 OK to frontend
+// RESPONSE
 // ═══════════════════════════════════════════════
 echo json_encode([
     'success'   => true,
     'emailSent' => $results['emailSent'],
     'smsSent'   => $results['smsSent'],
-    'message'   => 'Delivery processed',
+    'message'   => 'Delivery processed via Gmail SMTP',
 ]);
+
+
+// ═══════════════════════════════════════════════
+// Gmail SMTP Function (using fsockopen)
+// ═══════════════════════════════════════════════
+function sendGmailSMTP($username, $password, $fromName, $to, $subject, $htmlBody, $replyTo) {
+    $host = 'ssl://smtp.gmail.com';
+    $port = 465;
+    
+    $fp = @fsockopen($host, $port, $errno, $errstr, 15);
+    if (!$fp) {
+        return "Connection failed: $errstr ($errno)";
+    }
+    
+    $response = fgets($fp, 512);
+    if (substr($response, 0, 3) !== '220') {
+        fclose($fp);
+        return "Server not ready: $response";
+    }
+    
+    // EHLO
+    fwrite($fp, "EHLO vikrampresence.shop\r\n");
+    $response = '';
+    while ($line = fgets($fp, 512)) {
+        $response .= $line;
+        if (substr($line, 3, 1) === ' ') break;
+    }
+    
+    // AUTH LOGIN
+    fwrite($fp, "AUTH LOGIN\r\n");
+    fgets($fp, 512);
+    
+    fwrite($fp, base64_encode($username) . "\r\n");
+    fgets($fp, 512);
+    
+    fwrite($fp, base64_encode($password) . "\r\n");
+    $authResponse = fgets($fp, 512);
+    
+    if (substr($authResponse, 0, 3) !== '235') {
+        fclose($fp);
+        return "Auth failed: $authResponse";
+    }
+    
+    // MAIL FROM
+    fwrite($fp, "MAIL FROM:<$username>\r\n");
+    fgets($fp, 512);
+    
+    // RCPT TO
+    fwrite($fp, "RCPT TO:<$to>\r\n");
+    fgets($fp, 512);
+    
+    // DATA
+    fwrite($fp, "DATA\r\n");
+    fgets($fp, 512);
+    
+    // Headers + Body
+    $boundary = md5(time());
+    $headers  = "From: $fromName <$username>\r\n";
+    $headers .= "To: $to\r\n";
+    $headers .= "Reply-To: $replyTo\r\n";
+    $headers .= "Subject: $subject\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "X-Mailer: VikramPresence/1.0\r\n";
+    $headers .= "\r\n";
+    $headers .= $htmlBody;
+    $headers .= "\r\n.\r\n";
+    
+    fwrite($fp, $headers);
+    $dataResponse = fgets($fp, 512);
+    
+    // QUIT
+    fwrite($fp, "QUIT\r\n");
+    fclose($fp);
+    
+    if (substr($dataResponse, 0, 3) === '250') {
+        return true;
+    }
+    
+    return "Send failed: $dataResponse";
+}
