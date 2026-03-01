@@ -1,35 +1,20 @@
 /**
  * ===================================================================
- * WEBHOOK CONTROLLER — Bulletproof Razorpay Webhook Handler
+ * WEBHOOK CONTROLLER — OTP-Style Lightweight Delivery
  * ===================================================================
  *
- * This is the MOST CRITICAL security & fulfillment component.
+ * The SIMPLEST, most reliable webhook handler possible.
+ * Uses the exact same nodemailer pattern as the working Email OTP flow.
  *
- * Architecture:
- * ┌─────────────────────────────────────────────────────────┐
- * │  Razorpay fires `payment.captured` webhook              │
- * │         ↓                                               │
- * │  1. Verify crypto signature (HMAC SHA256)              │
- * │         ↓                                               │
- * │  2. Idempotency check (PocketBase webhook_events)      │
- * │         ↓                                               │
- * │  3. Extract notes (email, phone, product_id)           │
- * │         ↓                                               │
- * │  4. Generate Firebase signed URL (48h expiry)          │
- * │         ↓                                               │
- * │  5. Send premium email via Gmail SMTP                  │
- * │         ↓                                               │
- * │  6. Update purchase record → SUCCESS                   │
- * │         ↓                                               │
- * │  7. ALWAYS return 200 OK to Razorpay                   │
- * └─────────────────────────────────────────────────────────┘
+ * Flow:
+ *   1. Verify crypto signature (HMAC SHA256)
+ *   2. Filter for payment.captured only
+ *   3. Idempotency check (PocketBase)
+ *   4. Extract customer_email from notes
+ *   5. Send product email via Gmail SMTP (static download URL)
+ *   6. ALWAYS return 200 OK immediately
  *
- * Security:
- * - Cryptographic HMAC SHA256 signature validation
- * - Idempotency via payment_id deduplication
- * - Firebase signed URLs (anti-piracy, 48h expiry)
- * - Never exposes permanent download links
- * - Always returns 200 to prevent Razorpay retry storms
+ * Zero heavy SDKs. Zero firebase-admin. Pure nodemailer.
  *
  * ===================================================================
  */
@@ -38,9 +23,9 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import logger from '../utils/logger.js';
 import pb, { authenticateAdmin } from '../lib/pocketbaseAdmin.js';
-import { generateSignedUrl } from '../lib/firebaseAdmin.js';
 
 // ─── Gmail SMTP Transporter (Singleton) ──────────────────────────────
+// Exact same config as the working Email OTP flow
 let gmailTransporter = null;
 
 const getGmailTransporter = () => {
@@ -64,7 +49,7 @@ const getGmailTransporter = () => {
         },
     });
 
-    logger.info('Gmail SMTP transporter initialized for webhook delivery');
+    logger.info('✅ Gmail SMTP transporter initialized (webhook delivery)');
     return gmailTransporter;
 };
 
@@ -81,20 +66,16 @@ export const handleRazorpayWebhook = async (req, res) => {
         return res.status(500).json({ error: 'Webhook secret not configured' });
     }
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 1: CRYPTOGRAPHIC SIGNATURE VALIDATION
-    // ══════════════════════════════════════════════════════════════════
-    // Razorpay signs the raw request body with your webhook secret.
-    // We regenerate the HMAC and compare. If mismatch → hacker/tampering.
-
+    // ──────────────────────────────────────────────────────────────────
+    // STEP 1: CRYPTO SIGNATURE VALIDATION
+    // ──────────────────────────────────────────────────────────────────
     const receivedSignature = req.headers['x-razorpay-signature'];
 
     if (!receivedSignature) {
-        logger.error('🚫 Webhook rejected — missing x-razorpay-signature header');
+        logger.error('🚫 Webhook rejected — missing x-razorpay-signature');
         return res.status(400).json({ error: 'Missing signature header' });
     }
 
-    // req.body is a Buffer because we use express.raw() for this route
     const rawBody = typeof req.body === 'string' ? req.body : req.body.toString('utf8');
 
     const expectedSignature = crypto
@@ -103,250 +84,141 @@ export const handleRazorpayWebhook = async (req, res) => {
         .digest('hex');
 
     if (expectedSignature !== receivedSignature) {
-        logger.error('🚫 Webhook rejected — INVALID SIGNATURE (possible tampering)');
+        logger.error('🚫 Webhook rejected — INVALID SIGNATURE');
         return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
-    logger.info('✅ Webhook signature verified — request is authentic');
+    logger.info('✅ Webhook signature verified');
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 2: PARSE PAYLOAD & FILTER EVENT
-    // ══════════════════════════════════════════════════════════════════
-
+    // ──────────────────────────────────────────────────────────────────
+    // STEP 2: PARSE & FILTER EVENT
+    // ──────────────────────────────────────────────────────────────────
     let payload;
     try {
         payload = JSON.parse(rawBody);
-    } catch (parseError) {
-        logger.error('🚫 Webhook rejected — invalid JSON body:', parseError.message);
-        return res.status(400).json({ error: 'Invalid JSON payload' });
+    } catch (err) {
+        logger.error('🚫 Invalid JSON body:', err.message);
+        return res.status(400).json({ error: 'Invalid JSON' });
     }
 
-    const eventType = payload.event;
-
-    // We ONLY process payment.captured — ignore everything else
-    if (eventType !== 'payment.captured') {
-        logger.info(`⏭️  Ignoring webhook event: ${eventType}`);
-        return res.status(200).json({ status: 'ignored', event: eventType });
+    if (payload.event !== 'payment.captured') {
+        logger.info(`⏭️  Ignoring event: ${payload.event}`);
+        return res.status(200).json({ status: 'ignored' });
     }
 
-    logger.info(`📩 Processing webhook event: ${eventType}`);
-
-    // Extract payment entity
     const paymentEntity = payload.payload?.payment?.entity;
-
     if (!paymentEntity) {
-        logger.error('🚫 Webhook payload missing payment entity');
-        return res.status(200).json({ status: 'error', message: 'Missing payment entity' });
+        logger.error('🚫 Missing payment entity in payload');
+        return res.status(200).json({ status: 'error' });
     }
 
     const paymentId = paymentEntity.id;
     const orderId = paymentEntity.order_id;
-    const amountPaise = paymentEntity.amount;
+    const amountPaid = paymentEntity.amount / 100;
     const notes = paymentEntity.notes || {};
 
-    logger.info(`💰 Payment captured: ${paymentId} | Order: ${orderId} | Amount: ₹${amountPaise / 100}`);
+    logger.info(`💰 Payment captured: ${paymentId} | ₹${amountPaid}`);
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 3: IDEMPOTENCY CHECK (Prevent duplicate processing)
-    // ══════════════════════════════════════════════════════════════════
-    // Razorpay can fire the same webhook multiple times. We check if
-    // this payment_id was already processed. If yes → skip silently.
-
+    // ──────────────────────────────────────────────────────────────────
+    // STEP 3: IDEMPOTENCY CHECK (prevent duplicate emails)
+    // ──────────────────────────────────────────────────────────────────
     try {
-        if (!pb.authStore.isValid) {
-            await authenticateAdmin();
-        }
+        if (!pb.authStore.isValid) await authenticateAdmin();
 
-        // Check if this payment was already processed
-        const existingEvents = await pb.collection('webhook_events').getFullList({
+        const existing = await pb.collection('webhook_events').getFullList({
             filter: `payment_id="${paymentId}"`,
             $autoCancel: false,
         });
 
-        if (existingEvents.length > 0) {
-            logger.warn(`⚠️  Duplicate webhook — payment ${paymentId} already processed. Skipping.`);
-            return res.status(200).json({ status: 'duplicate', paymentId });
+        if (existing.length > 0) {
+            logger.warn(`⚠️  Duplicate — ${paymentId} already processed. Skipping.`);
+            return res.status(200).json({ status: 'duplicate' });
         }
 
-        // Record this payment to prevent future duplicates
         await pb.collection('webhook_events').create({
             payment_id: paymentId,
             order_id: orderId,
-            event_type: eventType,
-            amount: amountPaise / 100,
+            event_type: 'payment.captured',
+            amount: amountPaid,
             status: 'processing',
-            raw_payload: rawBody,
         }, { $autoCancel: false });
 
-        logger.info(`✅ New payment ${paymentId} recorded — idempotency check passed`);
-
-    } catch (idempotencyError) {
-        // If DB is down, we still process to avoid missing deliveries
-        // The worst case is a duplicate email, which is better than no email
-        logger.error(`⚠️  Idempotency check failed (DB error): ${idempotencyError.message}. Proceeding anyway.`);
+        logger.info(`✅ Idempotency passed — ${paymentId} recorded`);
+    } catch (dbErr) {
+        logger.error(`⚠️  Idempotency DB error: ${dbErr.message}. Proceeding anyway.`);
     }
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 4: EXTRACT CUSTOMER & PRODUCT DATA FROM NOTES
-    // ══════════════════════════════════════════════════════════════════
-
+    // ──────────────────────────────────────────────────────────────────
+    // STEP 4: EXTRACT DATA FROM NOTES
+    // ──────────────────────────────────────────────────────────────────
     const customerEmail = notes.customer_email || '';
-    const customerPhone = notes.customer_phone || '';
-    const productId = notes.productId || '';
     const productTitle = notes.productTitle || 'Your Digital Product';
+    const downloadUrl = process.env.PRODUCT_DOWNLOAD_URL || '';
 
     if (!customerEmail) {
-        logger.error(`🚫 No customer_email in notes for payment ${paymentId}. Cannot deliver.`);
-        // Still return 200 to Razorpay to prevent retries
-        // Log for manual reconciliation
-        await updateWebhookEvent(paymentId, 'failed_no_email');
-        return res.status(200).json({ status: 'error', message: 'No customer email in notes' });
+        logger.error(`🚫 No customer_email in notes for ${paymentId}`);
+        return res.status(200).json({ status: 'error', message: 'No email in notes' });
     }
 
-    logger.info(`📧 Delivering to: ${customerEmail} | Product: ${productTitle} (${productId})`);
+    // ──────────────────────────────────────────────────────────────────
+    // STEP 5: SEND EMAIL (Non-blocking, then return 200 immediately)
+    // ──────────────────────────────────────────────────────────────────
+    // Fire-and-forget: send the email but return 200 to Razorpay NOW
+    // This prevents Razorpay retry storms even if email is slow
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 5: GENERATE FIREBASE SIGNED URL (Anti-Piracy)
-    // ══════════════════════════════════════════════════════════════════
-    // Instead of sending a permanent public URL, we generate a
-    // temporary signed URL that expires in 48 hours.
+    // Return 200 to Razorpay IMMEDIATELY
+    res.status(200).json({ status: 'processed', paymentId });
+    logger.info(`✅ 200 OK sent to Razorpay for ${paymentId}`);
 
-    let downloadUrl = '';
-
-    try {
-        // Look up the Firebase Storage path from PocketBase products collection
-        let firebasePath = '';
-
-        if (productId) {
-            try {
-                if (!pb.authStore.isValid) {
-                    await authenticateAdmin();
-                }
-                const product = await pb.collection('products').getOne(productId, { $autoCancel: false });
-                firebasePath = product.firebasePath || '';
-            } catch (productErr) {
-                logger.warn(`Could not fetch product ${productId} from DB: ${productErr.message}`);
-            }
-        }
-
-        if (firebasePath) {
-            downloadUrl = await generateSignedUrl(firebasePath, 48);
-            logger.info(`🔗 Signed URL generated for "${firebasePath}" — 48h expiry`);
-        } else {
-            logger.warn(`⚠️  No firebasePath found for product ${productId}. Email will be sent without download link.`);
-        }
-    } catch (urlError) {
-        logger.error(`❌ Failed to generate signed URL: ${urlError.message}`);
-        // Continue — send email without download link, log for manual fix
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 6: SEND PREMIUM DELIVERY EMAIL
-    // ══════════════════════════════════════════════════════════════════
-    // Wrapped in try-catch. We ALWAYS return 200 to Razorpay regardless
-    // of email success. This prevents Razorpay retry storms.
-
+    // Now send email in background (non-blocking)
     try {
         const transporter = getGmailTransporter();
         const gmailUser = process.env.GMAIL_USER;
-
-        const htmlBody = buildDeliveryEmailHtml({
-            productTitle,
-            paymentId,
-            downloadUrl,
-            amountPaid: amountPaise / 100,
-        });
 
         await transporter.sendMail({
             from: `Vikram Presence <${gmailUser}>`,
             to: customerEmail,
             subject: `Your ${productTitle} is Ready! 🎉 — Vikram Presence`,
-            html: htmlBody,
+            html: buildDeliveryEmail({ productTitle, paymentId, downloadUrl, amountPaid }),
         });
 
-        logger.info(`✅ Delivery email sent to ${customerEmail} for "${productTitle}"`);
-
-    } catch (emailError) {
-        // CRITICAL: Do NOT let email failure propagate.
-        // Log it for manual reconciliation, but return 200 to Razorpay.
-        logger.error(`❌ EMAIL DELIVERY FAILED for ${customerEmail}: ${emailError.message}`);
-        logger.error(`    Payment: ${paymentId} | Product: ${productTitle}`);
-        logger.error(`    Signed URL: ${downloadUrl ? 'Generated' : 'Not available'}`);
-        logger.error(`    ⚠️  MANUAL ACTION REQUIRED: Resend product to ${customerEmail}`);
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 7: UPDATE PURCHASE RECORD IN POCKETBASE
-    // ══════════════════════════════════════════════════════════════════
-
-    try {
-        if (!pb.authStore.isValid) {
-            await authenticateAdmin();
-        }
-
-        // Find and update the purchase record
-        const purchases = await pb.collection('purchases').getFullList({
-            filter: `orderId="${orderId}"`,
-            $autoCancel: false,
-        });
-
-        if (purchases.length > 0) {
-            await pb.collection('purchases').update(purchases[0].id, {
-                status: 'SUCCESS',
-                paymentId: paymentId,
-            }, { $autoCancel: false });
-            logger.info(`✅ Purchase record updated to SUCCESS for order ${orderId}`);
-        }
+        logger.info(`✅ Delivery email sent to ${customerEmail}`);
 
         // Update webhook event status
-        await updateWebhookEvent(paymentId, 'completed');
+        try {
+            if (!pb.authStore.isValid) await authenticateAdmin();
+            const events = await pb.collection('webhook_events').getFullList({
+                filter: `payment_id="${paymentId}"`, $autoCancel: false,
+            });
+            if (events.length > 0) {
+                await pb.collection('webhook_events').update(events[0].id, { status: 'completed' }, { $autoCancel: false });
+            }
+        } catch (e) { /* non-critical */ }
 
-    } catch (dbError) {
-        logger.error(`⚠️  DB update failed after email delivery: ${dbError.message}`);
-        // Non-blocking — email already sent
-    }
+        // Update purchase record
+        try {
+            if (!pb.authStore.isValid) await authenticateAdmin();
+            const purchases = await pb.collection('purchases').getFullList({
+                filter: `orderId="${orderId}"`, $autoCancel: false,
+            });
+            if (purchases.length > 0) {
+                await pb.collection('purchases').update(purchases[0].id, {
+                    status: 'SUCCESS', paymentId,
+                }, { $autoCancel: false });
+                logger.info(`✅ Purchase marked SUCCESS for order ${orderId}`);
+            }
+        } catch (e) { /* non-critical */ }
 
-    // ══════════════════════════════════════════════════════════════════
-    // STEP 8: ALWAYS RETURN 200 OK TO RAZORPAY
-    // ══════════════════════════════════════════════════════════════════
-
-    logger.info(`🏁 Webhook processing complete for payment ${paymentId}`);
-
-    return res.status(200).json({
-        status: 'processed',
-        paymentId,
-        orderId,
-    });
-};
-
-
-// ─── Helper: Update webhook event status ─────────────────────────────
-const updateWebhookEvent = async (paymentId, status) => {
-    try {
-        if (!pb.authStore.isValid) {
-            await authenticateAdmin();
-        }
-
-        const events = await pb.collection('webhook_events').getFullList({
-            filter: `payment_id="${paymentId}"`,
-            $autoCancel: false,
-        });
-
-        if (events.length > 0) {
-            await pb.collection('webhook_events').update(events[0].id, {
-                status,
-            }, { $autoCancel: false });
-        }
-    } catch (err) {
-        logger.error(`Failed to update webhook_event status: ${err.message}`);
+    } catch (emailError) {
+        logger.error(`❌ EMAIL FAILED for ${customerEmail}: ${emailError.message}`);
+        logger.error(`   Payment: ${paymentId} | Product: ${productTitle}`);
+        logger.error(`   ⚠️  MANUAL ACTION: Resend product to ${customerEmail}`);
     }
 };
 
 
-// ─── Premium Delivery Email HTML Template ────────────────────────────
-const buildDeliveryEmailHtml = ({ productTitle, paymentId, downloadUrl, amountPaid }) => {
-    const hasDownloadLink = !!downloadUrl;
-
+// ─── Premium Delivery Email ──────────────────────────────────────────
+const buildDeliveryEmail = ({ productTitle, paymentId, downloadUrl, amountPaid }) => {
     return `
 <!DOCTYPE html>
 <html>
@@ -371,55 +243,41 @@ const buildDeliveryEmailHtml = ({ productTitle, paymentId, downloadUrl, amountPa
       </div>
 
       <p style="color:#cccccc;font-size:16px;line-height:1.6;margin:0 0 30px;">
-        Thank you for your purchase! ${hasDownloadLink ? 'Click the button below to access your product.' : 'Your product access details will be shared shortly.'}
+        Thank you for your purchase! Click the button below to access your product.
       </p>
 
-      ${hasDownloadLink ? `
-      <!-- CTA Download Button -->
+      ${downloadUrl ? `
+      <!-- Download Button -->
       <a href="${downloadUrl}" 
          style="display:inline-block;background:linear-gradient(135deg, #FFD700, #FFA500);color:#000000;padding:18px 48px;font-size:16px;font-weight:800;text-decoration:none;border-radius:50px;letter-spacing:2px;text-transform:uppercase;box-shadow:0 4px 15px rgba(255,215,0,0.4);">
         ACCESS YOUR PRODUCT →
       </a>
 
-      <!-- Link Expiry Warning -->
-      <div style="background:#1a1a00;border:1px solid #333300;border-radius:12px;padding:15px;margin:25px 0;">
-        <p style="color:#FFD700;font-size:12px;margin:0;letter-spacing:1px;">
-          ⏰ This download link expires in <strong>48 hours</strong>
-        </p>
-        <p style="color:#888;font-size:11px;margin:5px 0 0;">
-          Download your product now and save it to your device.
-        </p>
-      </div>
-
       <p style="color:#666;font-size:12px;margin:20px 0 0;line-height:1.5;">
-        Direct link (copy if button doesn't work):<br>
-        <a href="${downloadUrl}" style="color:#FFD700;word-break:break-all;font-size:11px;">${downloadUrl.substring(0, 80)}...</a>
+        Direct link:<br>
+        <a href="${downloadUrl}" style="color:#FFD700;word-break:break-all;font-size:11px;">${downloadUrl}</a>
       </p>
       ` : `
       <div style="background:#1a1a00;border:1px solid #333300;border-radius:12px;padding:20px;margin:10px 0;">
         <p style="color:#FFD700;font-size:14px;margin:0;">
-          📬 Your download link will be sent separately. If you don't receive it within 1 hour, please reply to this email.
+          📬 Your download link will be sent separately. Reply to this email if you don't receive it within 1 hour.
         </p>
       </div>
       `}
     </div>
 
-    <!-- Support Section -->
+    <!-- Support -->
     <div style="background:#0a0a0a;border-radius:12px;padding:20px;margin-bottom:20px;">
       <p style="color:#999;font-size:12px;margin:0;text-align:center;">
-        Need help? Reply to this email or contact us at<br>
+        Need help? Reply to this email or contact<br>
         <a href="mailto:vikramyeragadindla@gmail.com" style="color:#FFD700;">vikramyeragadindla@gmail.com</a>
       </p>
     </div>
 
     <!-- Footer -->
     <div style="border-top:1px solid #222;padding:25px 0;text-align:center;">
-      <p style="color:#444;font-size:11px;margin:0;letter-spacing:1px;">
-        Save this email — it contains your purchase confirmation.
-      </p>
-      <p style="color:#333;font-size:10px;margin:10px 0 0;">
-        © Vikram Presence. All rights reserved.
-      </p>
+      <p style="color:#444;font-size:11px;margin:0;letter-spacing:1px;">Save this email — it's your purchase confirmation.</p>
+      <p style="color:#333;font-size:10px;margin:10px 0 0;">© Vikram Presence. All rights reserved.</p>
     </div>
 
   </div>
