@@ -171,7 +171,7 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                         ) : (
                             <motion.div key="unverified" className="space-y-2.5">
                                 {/* Email Input + Send OTP */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 checkout-row">
                                     <div className="relative flex-1">
                                         <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/15 pointer-events-none" />
                                         <input
@@ -210,7 +210,7 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                                             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="flex gap-2 pt-0.5">
+                                            <div className="flex gap-2 pt-0.5 checkout-row">
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"

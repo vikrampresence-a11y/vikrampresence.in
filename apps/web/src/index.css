@@ -295,6 +295,86 @@
       backdrop-filter: blur(20px);
     }
   }
+
+  /* ══════════════════════════════════════════════════
+     MOBILE RESPONSIVE — Checkout Components
+     ══════════════════════════════════════════════════ */
+  @media (max-width: 480px) {
+
+    /* Card padding */
+    .checkout-card {
+      padding: 1rem !important;
+      border-radius: 1rem;
+    }
+
+    /* Stack email + send button vertically */
+    .checkout-row {
+      flex-direction: column !important;
+    }
+
+    .checkout-row>button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Inputs */
+    .premium-input {
+      padding: 0.75rem 0.75rem 0.75rem 2.25rem;
+      font-size: 0.8rem;
+    }
+
+    .otp-input {
+      font-size: 1.25rem;
+      letter-spacing: 0.3em;
+      padding: 0.75rem;
+    }
+
+    /* Trust badges — 2x2 grid */
+    .trust-badges {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .trust-badge {
+      font-size: 0.6rem;
+      justify-content: center;
+    }
+
+    /* Verified block tight */
+    .verified-block {
+      padding: 0.625rem 0.875rem;
+    }
+
+    .verified-block span {
+      font-size: 0.7rem;
+    }
+  }
+
+  /* Tablet-ish */
+  @media (max-width: 640px) and (min-width: 481px) {
+    .checkout-card {
+      padding: 1.25rem !important;
+    }
+
+    .premium-input {
+      padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+      font-size: 0.825rem;
+    }
+  }
+
+  /* Ensure nothing overflows */
+  .checkout-card {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .checkout-card * {
+    min-width: 0;
+    box-sizing: border-box;
+  }
 }
 
 @layer utilities {
