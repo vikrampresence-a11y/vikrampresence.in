@@ -210,7 +210,7 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                                             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="flex gap-2 pt-0.5 checkout-row">
+                                            <div className="flex gap-2 pt-0.5 otp-row">
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"

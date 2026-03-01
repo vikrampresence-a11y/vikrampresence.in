@@ -212,7 +212,7 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
                 {emailOtpSent && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
-                    <div className="flex gap-2 pt-0.5 checkout-row">
+                    <div className="flex gap-2 pt-0.5 otp-row">
                       <input type="text" inputMode="numeric" maxLength={4} placeholder="• • • •"
                         value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
                         aria-label="Enter 4-digit OTP code"
