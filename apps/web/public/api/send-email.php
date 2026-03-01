@@ -200,6 +200,31 @@ if ($action === 'verify_payment') {
     }
     exit;
 }
+// ═════════════════════════════════════════════════════════
+// 5. SEND CUSTOM EMAIL (Admin Emailer)
+// ═════════════════════════════════════════════════════════
+if ($action === 'send_custom_email') {
+    $email = $input['email'] ?? '';
+    $subject = $input['subject'] ?? '';
+    $body = $input['body'] ?? '';
+
+    if (!$email || !$subject || !$body) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'email, subject, and body required']);
+        exit;
+    }
+
+    $html = "
+    <div style='background:#0a0a0c;color:#fff;padding:60px 40px;font-family:Helvetica, Arial, sans-serif;'>
+        $body
+        <hr style='border:none;border-top:1px solid #222;margin:40px 0;'>
+        <p style='color:#555;font-size:11px;text-align:center;'>Sent from Vikram Presence Admin</p>
+    </div>";
+
+    $sent = send_gmail_smtp($email, $subject, $html);
+    echo json_encode(['success' => $sent]);
+    exit;
+}
 
 http_response_code(400);
 echo json_encode(['error' => 'Invalid action specified']);
