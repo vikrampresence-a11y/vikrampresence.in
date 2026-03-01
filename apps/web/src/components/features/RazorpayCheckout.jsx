@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePayment } from '@/context/PaymentContext.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
-import { Loader2, Mail, Phone, CheckCircle2, XCircle, Send, ShieldCheck, KeyRound } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, Mail, Phone, CheckCircle2, XCircle, Send, ShieldCheck, KeyRound, Lock, CreditCard, Zap } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { saveRedirectPath } from '@/hooks/useSmartRedirect';
 import apiServerClient from '@/lib/apiServerClient';
@@ -112,7 +113,6 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
   };
 
   const handlePhoneChange = (e) => {
-    // Strictly numeric only, max 10 digits
     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
     setPhone(digits);
   };
@@ -150,112 +150,162 @@ const RazorpayCheckout = ({ product, className = '', buttonText = 'Buy Now' }) =
     return (
       <button
         onClick={handleBuyClick}
-        className={`flex items-center justify-center px-8 py-4 bg-[#FFD700] text-black font-bold uppercase tracking-widest rounded-full hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.4)] hover:shadow-[0_0_30px_rgba(255,215,0,0.6)] ${className}`}
+        aria-label={`Buy ${product.title || 'product'} for ₹${product.price}`}
+        className={`flex items-center justify-center gap-2 px-8 py-4 bg-[#FFD700] text-black font-bold uppercase tracking-[0.12em] text-sm rounded-2xl transition-all duration-300 shimmer-btn animate-cta-glow hover:bg-yellow-400 active:scale-[0.98] interactive-hover ${className}`}
       >
-        {`${buttonText} - ₹${product.price}`}
+        <CreditCard size={16} />
+        {`${buttonText} — ₹${product.price}`}
       </button>
     );
   }
 
   return (
-    <form onSubmit={handleCheckout} className={`bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl ${className}`}>
-      <h3 className="text-white font-bold mb-2 text-lg">Verify & Pay</h3>
-      <p className="text-gray-400 text-sm mb-6">Verify your email and enter your phone number to proceed.</p>
+    <form onSubmit={handleCheckout} className={`checkout-card p-5 sm:p-7 ${className}`}>
 
-      {/* ═══ EMAIL VERIFICATION ═══ */}
-      <div className="mb-5">
-        <label className="text-[#FFD700] text-xs font-bold uppercase tracking-widest mb-2 block">
-          <Mail size={12} className="inline mr-1.5" />Email Verification
-        </label>
+      {/* Section Header */}
+      <div className="flex items-center gap-2.5 pb-4 mb-5 border-b border-white/[0.04]">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--surface-3)' }}>
+          <Lock size={14} className="text-[#FFD700]/70" />
+        </div>
+        <div>
+          <p className="text-white text-sm font-semibold tracking-tight">Secure Checkout</p>
+          <p className="text-white/25 text-[10px] uppercase tracking-[0.12em]">₹{product.price} · {product.title}</p>
+        </div>
+      </div>
 
-        {isEmailVerified ? (
-          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3">
-            <CheckCircle2 className="h-5 w-5 text-green-400" />
-            <span className="text-green-400 text-sm font-medium">{email} — Verified</span>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-                <input type="email" placeholder="Enter your email" value={email} onChange={handleEmailChange}
-                  className="w-full bg-black border border-white/20 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FFD700] transition-colors text-sm" />
-              </div>
-              <button type="button" onClick={handleSendEmailOtp}
-                disabled={emailCooldown > 0 || emailOtpStatus === 'sending' || !email}
-                className="px-4 py-3 bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#FFD700]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5">
-                {emailOtpStatus === 'sending' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send size={12} />}
-                {emailCooldown > 0 ? `${emailCooldown}s` : 'Send OTP'}
-              </button>
-            </div>
-            {emailOtpSent && (
+      {/* ═══ STEP 1: EMAIL VERIFICATION ═══ */}
+      <div className="mb-5 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-[0.12em]">
+            <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white/40" style={{ background: 'var(--surface-3)' }}>1</div>
+            Email Verification
+          </label>
+          {isEmailVerified && <span className="text-green-400/80 text-[9px] font-semibold uppercase tracking-wider">✓ Done</span>}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {isEmailVerified ? (
+            <motion.div key="verified" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="verified-block animate-success-pulse">
+              <CheckCircle2 size={16} className="text-green-400 shrink-0" />
+              <span className="text-green-400/90 text-[13px] font-medium truncate">{email}</span>
+            </motion.div>
+          ) : (
+            <motion.div key="unverified" className="space-y-2.5">
               <div className="flex gap-2">
-                <input type="text" inputMode="numeric" maxLength={4} placeholder="Enter 4-digit code"
-                  value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-                  className="flex-1 bg-black border border-[#FFD700]/30 rounded-xl py-3 px-4 text-white text-center text-lg tracking-[0.4em] placeholder:text-gray-500 placeholder:tracking-normal placeholder:text-sm focus:outline-none focus:border-[#FFD700] transition-colors" />
-                <button type="button" onClick={handleVerifyEmailOtp}
-                  disabled={emailOtpStatus === 'verifying' || emailOtp.length < 4}
-                  className="px-5 py-3 bg-[#FFD700] text-black font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
-                  {emailOtpStatus === 'verifying' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound size={14} />}
-                  Verify
+                <div className="relative flex-1">
+                  <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/15 pointer-events-none" />
+                  <input type="email" placeholder="your@email.com" value={email} onChange={handleEmailChange}
+                    aria-label="Email address for verification"
+                    className="premium-input" />
+                </div>
+                <button type="button" onClick={handleSendEmailOtp}
+                  disabled={emailCooldown > 0 || emailOtpStatus === 'sending' || !email}
+                  aria-label={emailCooldown > 0 ? `Resend OTP in ${emailCooldown} seconds` : 'Send OTP'}
+                  className="px-4 py-3 text-[#FFD700]/90 border border-[#FFD700]/15 rounded-[0.875rem] text-[10px] font-bold tracking-[0.05em] uppercase disabled:opacity-25 hover:border-[#FFD700]/25 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap interactive-hover"
+                  style={{ background: 'var(--surface-3)' }}>
+                  {emailOtpStatus === 'sending' ? <Loader2 size={13} className="animate-spin" /> : <Send size={12} />}
+                  {emailCooldown > 0 ? <span className="font-mono tabular-nums">{emailCooldown}s</span> : 'Send'}
                 </button>
               </div>
-            )}
-          </div>
-        )}
+
+              <AnimatePresence>
+                {emailOtpSent && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                    <div className="flex gap-2 pt-0.5">
+                      <input type="text" inputMode="numeric" maxLength={4} placeholder="• • • •"
+                        value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
+                        aria-label="Enter 4-digit OTP code"
+                        className="otp-input flex-1" />
+                      <button type="button" onClick={handleVerifyEmailOtp}
+                        disabled={emailOtpStatus === 'verifying' || emailOtp.length < 4}
+                        aria-label="Verify OTP"
+                        className="px-5 py-3 bg-[#FFD700] text-black rounded-[0.875rem] text-[10px] font-extrabold tracking-[0.08em] uppercase disabled:opacity-30 hover:bg-yellow-400 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap interactive-hover">
+                        {emailOtpStatus === 'verifying' ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />}
+                        Verify
+                      </button>
+                    </div>
+                    <p className="text-white/20 text-[10px] mt-1.5 ml-1">Check your inbox — enter the 4-digit code</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ═══ PHONE NUMBER (Strict 10-digit, no OTP) ═══ */}
-      <div className="mb-6">
-        <label className="text-[#FFD700] text-xs font-bold uppercase tracking-widest mb-2 block">
-          <Phone size={12} className="inline mr-1.5" />Phone Number
-        </label>
-        <div className="relative">
-          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-          <input
-            type="tel"
-            inputMode="numeric"
-            maxLength={10}
-            placeholder="Enter 10-digit mobile number"
-            value={phone}
-            onChange={handlePhoneChange}
-            className="w-full bg-black border border-white/20 rounded-xl py-3 pl-10 pr-12 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FFD700] transition-colors text-sm"
-          />
-          {/* Real-time ✅/❌ indicator */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {phone.length > 0 && (
-              isValidPhone
-                ? <CheckCircle2 size={18} className="text-green-400" />
-                : <XCircle size={18} className="text-red-400" />
-            )}
-          </div>
+      {/* ═══ STEP 2: PHONE NUMBER ═══ */}
+      <div className="mb-5 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-[0.12em]">
+            <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white/40" style={{ background: 'var(--surface-3)' }}>2</div>
+            Phone Number
+          </label>
+          {isValidPhone && <span className="text-green-400/80 text-[9px] font-semibold uppercase tracking-wider">✓ Valid</span>}
         </div>
-        {phone.length > 0 && !isValidPhone && (
-          <p className="text-red-400 text-xs mt-1.5 ml-1">Enter exactly 10 digits ({10 - phone.length} more needed)</p>
-        )}
-        {isValidPhone && (
-          <p className="text-green-400 text-xs mt-1.5 ml-1">✅ Valid phone number</p>
-        )}
+
+        <div className="relative">
+          <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/15 pointer-events-none" />
+          <input type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number"
+            value={phone} onChange={handlePhoneChange}
+            aria-label="10-digit mobile phone number"
+            className="premium-input pr-12" />
+          {phone.length > 0 && (
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+              {isValidPhone ? <CheckCircle2 size={18} className="text-green-400" /> : <XCircle size={18} className="text-white/15" />}
+            </div>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {phone.length > 0 && !isValidPhone && (
+            <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="text-white/25 text-[11px] ml-1 overflow-hidden">
+              {10 - phone.length} more digit{10 - phone.length !== 1 ? 's' : ''} needed
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Divider */}
+      <div className="border-t border-white/[0.04] mb-5" />
 
       {/* ═══ PAY BUTTON ═══ */}
-      {canPay ? (
-        <button type="submit" disabled={isProcessing}
-          className="w-full flex items-center justify-center px-8 py-4 bg-[#FFD700] text-black font-bold uppercase tracking-widest rounded-xl hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.4)] hover:shadow-[0_0_30px_rgba(255,215,0,0.6)] disabled:opacity-70">
-          {isProcessing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</> : `Pay ₹${product.price}`}
-        </button>
-      ) : (
-        <div className="bg-white/5 rounded-xl p-4 text-center">
-          <ShieldCheck size={18} className="text-[#FFD700] mx-auto mb-2" />
-          <p className="text-gray-400 text-xs">
-            {!isEmailVerified && !isValidPhone
-              ? 'Verify your email and enter a valid phone number to unlock payment.'
-              : !isEmailVerified
-                ? 'Verify your email to continue.'
-                : 'Enter a valid 10-digit phone number to continue.'}
-          </p>
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {canPay ? (
+          <motion.div key="can-pay" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
+            <button type="submit" disabled={isProcessing}
+              aria-label={isProcessing ? 'Processing payment' : `Pay ₹${product.price}`}
+              className="w-full bg-[#FFD700] text-black py-4 font-bold text-sm uppercase tracking-[0.15em] rounded-2xl transition-all duration-300 disabled:opacity-50 shimmer-btn animate-cta-glow hover:bg-yellow-400 active:scale-[0.98] flex items-center justify-center gap-2">
+              {isProcessing ? (
+                <><Loader2 size={18} className="animate-spin" /><span>Processing...</span></>
+              ) : (
+                <><CreditCard size={16} /><span>Pay ₹{product.price}</span></>
+              )}
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div key="locked" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="rounded-xl p-4 text-center" style={{ background: 'var(--surface-2)' }}>
+            <ShieldCheck size={16} className="text-white/15 mx-auto mb-2" />
+            <p className="text-white/20 text-[11px] leading-relaxed">
+              {!isEmailVerified && !isValidPhone
+                ? 'Verify your email and enter phone number to proceed.'
+                : !isEmailVerified ? 'Verify your email to continue.'
+                  : 'Enter a valid 10-digit phone number.'}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Trust Badges */}
+      <div className="trust-badges mt-5">
+        <div className="trust-badge"><Lock size={11} /><span>256-bit SSL</span></div>
+        <div className="trust-badge"><ShieldCheck size={11} /><span>100% Secure</span></div>
+        <div className="trust-badge"><CreditCard size={11} /><span>Razorpay</span></div>
+        <div className="trust-badge"><Zap size={11} /><span>Instant Access</span></div>
+      </div>
     </form>
   );
 };

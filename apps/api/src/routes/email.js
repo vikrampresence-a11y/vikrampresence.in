@@ -4,12 +4,9 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
-// Validate SMTP credentials at startup
-const smtpHost = process.env.SMTP_HOST;
-const smtpUser = process.env.SMTP_USER;
-
-logger.info('SMTP Host loaded:', smtpHost ? 'YES' : 'NO');
-logger.info('SMTP User loaded:', smtpUser ? 'YES' : 'NO');
+// Gmail SMTP credentials check at startup
+const gmailUser = process.env.GMAIL_USER;
+logger.info('Gmail User loaded:', gmailUser ? 'YES' : 'NO');
 
 // Send product email endpoint
 router.post('/send-product-email', sendProductEmail);
