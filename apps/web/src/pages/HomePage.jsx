@@ -14,6 +14,15 @@ const HomePage = () => {
 
   const getSampleProducts = () => [
     {
+      id: 'content-creation',
+      title: 'Content Creation',
+      description: 'Master the art of content creation — strategy, production, and growth for every platform.',
+      pricePaise: 100,
+      coverImageUrl: '/content-creation-cover.png',
+      driveLink: 'https://drive.google.com/drive/folders/1-fJ109sF0WJNRv3geArVKehGHE2SQ0zW?usp=drive_link',
+      type: 'ebook',
+    },
+    {
       id: 'sample-1',
       title: 'Habit Mastery Ebook',
       pricePaise: 49900,
