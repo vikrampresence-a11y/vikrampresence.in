@@ -7,6 +7,7 @@ import { Loader2, Mail, Phone, CheckCircle2, ChevronRight, XCircle, Send, Shield
 import { useToast } from '@/components/ui/use-toast';
 import { saveRedirectPath } from '@/hooks/useSmartRedirect';
 import apiServerClient from '@/lib/apiServerClient';
+import pb from '@/lib/pocketbaseClient';
 
 const RazorpayCheckout = ({ product = {}, className = '', buttonText = 'Buy Now' }) => {
   const { processPayment, isProcessing } = usePayment();
@@ -89,6 +90,13 @@ const RazorpayCheckout = ({ product = {}, className = '', buttonText = 'Buy Now'
       if (data.verified) {
         setIsEmailVerified(true);
         setEmailOtpStatus('idle');
+
+        // --- AUTO LOGIN TRIGGER ---
+        // If the backend created/fetched a user and issued a token, log them in instantly
+        if (data.token && data.user) {
+          pb.authStore.save(data.token, data.user);
+        }
+
         toast({ title: 'Verified', description: 'Email verified successfully.' });
       } else {
         setEmailOtpStatus('error');

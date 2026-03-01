@@ -66,12 +66,21 @@ export const verifyPayment = async (req, res) => {
       const purchase = purchases[0];
 
       if (isSignatureValid) {
-        // ✅ Signature matches — Mark as SUCCESS
+        // ✅ Signature matches — Mark as SUCCESS and Link to User
+        let userId = null;
+        try {
+          const userRecord = await pb.collection('users').getFirstListItem(`email="${buyerEmail}"`);
+          userId = userRecord.id;
+        } catch (e) {
+          logger.warn(`Could not find user to link purchase to: ${buyerEmail}`);
+        }
+
         await pb.collection('purchases').update(purchase.id, {
           status: 'SUCCESS',
           paymentId: paymentId,
+          user: userId, // Link the purchase to the user!
         }, { $autoCancel: false });
-        logger.info(`✅ Purchase ${purchase.id} marked as SUCCESS (order: ${orderId})`);
+        logger.info(`✅ Purchase ${purchase.id} marked as SUCCESS and linked to user ${userId} (order: ${orderId})`);
       } else {
         // ❌ Signature mismatch — Mark as FAILED
         await pb.collection('purchases').update(purchase.id, {

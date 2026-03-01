@@ -1,39 +1,44 @@
-
-import React, { createContext, useContext } from 'react';
-import { useUser, useAuth as useClerkAuth, useClerk } from '@clerk/clerk-react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import pb from '@/lib/pocketbaseClient';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
 /**
- * AuthProvider — thin wrapper around Clerk hooks.
- * Maintains the same API shape that the rest of the app expects:
- *   isAuthenticated, isAdmin, currentUser, currentAdmin, logout, isLoading
- *
- * Admin detection: set `role: "admin"` in Clerk Dashboard → Users → publicMetadata
+ * AuthProvider — Native PocketBase Authentication
+ * Replaces Clerk.
  */
 export const AuthProvider = ({ children }) => {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const { signOut } = useClerk();
-  const { getToken } = useClerkAuth();
+  const [currentUser, setCurrentUser] = useState(pb.authStore.model);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Admin check via Clerk publicMetadata
-  const isAdmin = user?.publicMetadata?.role === 'admin';
+  useEffect(() => {
+    // Initial load state
+    setIsLoading(false);
 
-  // Map Clerk user to the shape the app already uses
-  const currentUser = isSignedIn && user ? {
-    id: user.id,
-    email: user.primaryEmailAddress?.emailAddress || '',
-    name: user.fullName || user.firstName || '',
-    profilePicture: user.imageUrl || '',
-    avatar: user.imageUrl || '',
-  } : null;
+    // Listen to auth state changes from PocketBase
+    const unsubscribe = pb.authStore.onChange((token, model) => {
+      setCurrentUser(model);
+    });
 
-  const currentAdmin = isSignedIn && isAdmin ? currentUser : null;
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const isAdmin = currentUser?.collectionName === 'admins' || currentUser?.role === 'admin';
+  const isAuthenticated = pb.authStore.isValid;
+
+  const currentAdmin = isAuthenticated && isAdmin ? currentUser : null;
 
   const logout = () => {
-    signOut();
+    pb.authStore.clear();
+    setCurrentUser(null);
+  };
+
+  const getToken = async () => {
+    return pb.authStore.token;
   };
 
   return (
@@ -41,8 +46,8 @@ export const AuthProvider = ({ children }) => {
       currentUser: isAdmin ? null : currentUser,
       currentAdmin,
       logout,
-      isLoading: !isLoaded,
-      isAuthenticated: !!isSignedIn,
+      isLoading,
+      isAuthenticated,
       isAdmin,
       getToken,
     }}>

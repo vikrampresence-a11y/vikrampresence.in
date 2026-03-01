@@ -11,7 +11,9 @@
  */
 
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import logger from '../utils/logger.js';
+import pb, { authenticateAdmin } from '../lib/pocketbaseAdmin.js';
 
 // ─── In-Memory OTP Store ─────────────────────────────────────────────
 // Map<email, { otp: string, expiresAt: number, timer: NodeJS.Timeout }>
@@ -195,8 +197,71 @@ export const verifyEmailOtp = async (req, res) => {
 
     logger.info(`✅ Email OTP verified for ${email}`);
 
-    return res.status(200).json({
-        verified: true,
-        message: 'Email verified successfully',
-    });
+    // ── Auto-Account Creation via PocketBase ──
+    try {
+        if (!pb.authStore.isValid) {
+            await authenticateAdmin();
+        }
+
+        let userRecord;
+        let token;
+
+        // 1. Check if user already exists
+        try {
+            userRecord = await pb.collection('users').getFirstListItem(`email="${email}"`);
+            logger.info(`User already exists for email: ${email}`);
+
+            // We need to generate a token for this user so frontend can log in. 
+            // Since we are admin, we can't easily impersonate without knowing the password, but we can reset or issue a token via impersonation if configured, OR we can generate a random password, update the user, and auth.
+            // A safer flow is generating an auth token directly if PocketBase version allows, but lacking that, we can simply generate a new temporary password, update it, and authenticate to get the token.
+            const tempPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
+            await pb.collection('users').update(userRecord.id, {
+                password: tempPassword,
+                passwordConfirm: tempPassword
+            });
+            const authResult = await pb.collection('users').authWithPassword(email, tempPassword);
+            token = authResult.token;
+            userRecord = authResult.record;
+
+            // Restore admin auth
+            await authenticateAdmin();
+
+        } catch (err) {
+            // 2. User doesn't exist, create them
+            const generatedPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
+            logger.info(`Creating new user account for: ${email}`);
+
+            userRecord = await pb.collection('users').create({
+                email: email,
+                emailVisibility: true,
+                password: generatedPassword,
+                passwordConfirm: generatedPassword,
+                verified: true, // Auto-verify since they just passed OTP
+                name: email.split('@')[0], // Default name
+            });
+
+            // Authenticate to get their token
+            const authResult = await pb.collection('users').authWithPassword(email, generatedPassword);
+            token = authResult.token;
+
+            // Restore admin auth for backend operations
+            await authenticateAdmin();
+        }
+
+        return res.status(200).json({
+            verified: true,
+            message: 'Email verified successfully',
+            user: userRecord,
+            token: token
+        });
+
+    } catch (pbError) {
+        logger.error(`PocketBase auto-account creation failed for ${email}:`, pbError.message);
+        // We still return true for verification so the flow doesn't completely break, 
+        // but the user won't be auto-logged in.
+        return res.status(200).json({
+            verified: true,
+            message: 'Email verified successfully, but auto-login failed.',
+        });
+    }
 };

@@ -67,8 +67,8 @@ const MyProductsPage = () => {
                         className="mb-16"
                     >
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-center">
-                                <ShoppingBag className="text-[#FFD700]" size={24} />
+                            <div className="w-12 h-12 rounded-full bg-[#E2F034]/10 border border-[#E2F034]/30 flex items-center justify-center">
+                                <ShoppingBag className="text-[#E2F034]" size={24} />
                             </div>
                             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
                                 My Products
@@ -92,7 +92,7 @@ const MyProductsPage = () => {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.5, delay: index * 0.1 }}
-                                        className="group bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-[#FFD700]/40 transition-all duration-500 shadow-[0_0_15px_rgba(0,0,0,0.6)] hover:shadow-[0_0_30px_rgba(255,215,0,0.1)]"
+                                        className="group bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-[#E2F034]/40 transition-all duration-500 shadow-[0_0_15px_rgba(0,0,0,0.6)] hover:shadow-[0_0_30px_rgba(226,240,52,0.1)]"
                                     >
                                         {/* Product Image */}
                                         <div className="aspect-[16/9] overflow-hidden relative">
@@ -103,7 +103,7 @@ const MyProductsPage = () => {
                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                                             />
                                             <div className="absolute top-4 left-4 z-20">
-                                                <span className="px-4 py-1.5 bg-black/80 backdrop-blur-md border border-[#FFD700]/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#FFD700] shadow-lg flex items-center gap-1.5">
+                                                <span className="px-4 py-1.5 bg-black/80 backdrop-blur-md border border-[#E2F034]/30 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#E2F034] shadow-lg flex items-center gap-1.5">
                                                     {product.type === 'ebook' ? <BookOpen size={12} /> : <MonitorPlay size={12} />}
                                                     {product.type === 'ebook' ? 'Ebook' : 'Course'}
                                                 </span>
@@ -112,7 +112,7 @@ const MyProductsPage = () => {
 
                                         {/* Content */}
                                         <div className="p-6">
-                                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#FFD700] transition-colors duration-300">
+                                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#E2F034] transition-colors duration-300">
                                                 {product.title}
                                             </h3>
                                             <p className="text-gray-400 text-sm font-light line-clamp-2 mb-6 leading-relaxed">
@@ -132,7 +132,7 @@ const MyProductsPage = () => {
                                                     href={product.googleDriveLink}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FFD700] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(255,215,0,0.3)]"
+                                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#E2F034] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-[#c8d42e] hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(226,240,52,0.3)]"
                                                 >
                                                     Access <ExternalLink size={14} />
                                                 </a>
@@ -161,7 +161,7 @@ const MyProductsPage = () => {
                             </p>
                             <Link
                                 to="/shop"
-                                className="inline-flex items-center px-10 py-4 bg-[#FFD700] text-black font-bold uppercase tracking-widest rounded-full hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.3)]"
+                                className="inline-flex items-center px-10 py-4 bg-[#E2F034] text-black font-bold uppercase tracking-widest rounded-full hover:bg-[#c8d42e] hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(226,240,52,0.3)]"
                             >
                                 Explore Shop
                             </Link>
