@@ -5,6 +5,9 @@
 	# Allow PHP API files to execute directly
 	RewriteRule ^api/.*\.php$ - [L]
 
+	# Allow uploads to be served directly
+	RewriteRule ^uploads/ - [L]
+
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
 	RewriteRule ^ index.html [L]
@@ -13,11 +16,18 @@
 <IfModule mod_headers.c>
 	Header set X-Powered-By "Hostinger Horizons"
 
-	# Cache everything on CDN by default
+	# Default: cache on CDN
 	Header set Cache-Control "public, s-maxage=604800, max-age=0"
 
-	# Cache in browser all assets
+	# Cache in browser all hashed assets (long-lived)
 	<If "%{REQUEST_URI} =~ m#^/assets/.*$#">
 		Header set Cache-Control "public, max-age=604800"
 	</If>
+
+	# NEVER cache index.html — always serve latest JS bundle
+	<If "%{REQUEST_URI} == '/' || %{REQUEST_URI} =~ m#^/(admin-vikram|shop|ebooks|courses|about|contact|thank-you|login|my-products|privacy-policy|terms-of-service|refund-policy|product|t)#">
+		Header set Cache-Control "no-cache, no-store, must-revalidate"
+		Header set Pragma "no-cache"
+	</If>
 </IfModule>
+

@@ -17,7 +17,6 @@ import TermsOfServicePage from './pages/TermsOfServicePage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import ThankYouPage from './pages/ThankYouPage';
 import ShortLinkPage from './pages/ShortLinkPage';
-import AdminPage from './pages/AdminPage';
 import AdminPortal from './pages/AdminPortal';
 import LoginPage from './pages/LoginPage';
 import MyProductsPage from './pages/MyProductsPage';
@@ -70,9 +69,6 @@ function App() {
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                     <Route path="/refund-policy" element={<RefundPolicyPage />} />
-
-                    {/* Legacy Admin */}
-                    <Route path="/admin" element={<AdminPage />} />
 
                     {/* Short branded link from SMS */}
                     <Route path="/t/:paymentId" element={<ShortLinkPage />} />
