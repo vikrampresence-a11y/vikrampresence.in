@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Loader2, CheckCircle, ArrowLeft, ShieldCheck, Clock, Zap, Mail } from 'lucide-react';
+import { Loader2, CheckCircle, ArrowLeft, ShieldCheck, Clock, Zap, Mail, Star, BookOpen } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
 import RazorpayCheckout from '@/components/features/RazorpayCheckout.jsx';
 
@@ -38,7 +38,6 @@ const ProductDetailPage = () => {
         const record = await pb.collection('products').getOne(id, { $autoCancel: false });
         setProduct(record);
 
-        // Fetch related
         const related = await pb.collection('products').getList(1, 3, {
           filter: `type="${record.type}" && id!="${record.id}"`,
           $autoCancel: false
@@ -70,18 +69,21 @@ const ProductDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-[#FFD700] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--surface-0)' }}>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-[#FFD700]/60 animate-spin" />
+          <p className="text-white/20 text-[11px] uppercase tracking-[0.15em]">Loading product...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center text-white" style={{ background: 'var(--surface-0)' }}>
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">Product not found</h2>
-          <Link to="/shop" className="text-[#FFD700] hover:underline text-sm uppercase tracking-widest">Return to Shop</Link>
+          <h2 className="text-xl font-semibold mb-3">Product not found</h2>
+          <Link to="/shop" className="text-[#FFD700] hover:underline text-[11px] uppercase tracking-[0.15em]">Return to Shop</Link>
         </div>
       </div>
     );
@@ -93,7 +95,15 @@ const ProductDetailPage = () => {
     "Develop genuine confidence through action."
   ];
 
-  const learningList = product.whatYouLearn ? product.whatYouLearn.split(',').map(l => l.trim()) : [];
+  const learningList = product.whatYouLearn ? product.whatYouLearn.split(',').map(l => l.trim()) : [
+    "A proven framework for building lasting habits",
+    "Mental models used by high-performers worldwide",
+    "Practical daily exercises for immediate results",
+    "How to overcome self-doubt and take massive action"
+  ];
+
+  // Strikethrough price (show perceived value)
+  const originalPrice = Math.round(product.price * 2.5);
 
   return (
     <>
@@ -102,126 +112,168 @@ const ProductDetailPage = () => {
         <meta name="description" content={product.description} />
       </Helmet>
 
-      <div className="bg-black min-h-screen text-white pt-32 pb-24 font-sans">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <div className="min-h-screen text-white pt-28 pb-24 font-sans" style={{ background: 'var(--surface-0)' }}>
+        <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
 
-          <Link to="/shop" className="inline-flex items-center text-white/50 hover:text-[#FFD700] transition-colors mb-10 text-[11px] uppercase tracking-[0.15em] font-medium">
-            <ArrowLeft size={14} className="mr-2" /> Back to Shop
+          <Link to="/shop" className="inline-flex items-center text-white/30 hover:text-[#FFD700] transition-colors mb-8 text-[11px] uppercase tracking-[0.12em] font-medium interactive-hover">
+            <ArrowLeft size={13} className="mr-1.5" /> Back to Shop
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 mb-28">
-            {/* Image */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="relative aspect-[4/5] rounded-2xl overflow-hidden glass-card"
-              style={{ boxShadow: '0 0 40px rgba(255,215,0,0.08)' }}
-            >
-              <img
-                src={getImageUrl(product)}
-                alt={product.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-              <div className="absolute bottom-6 left-6">
-                <span className="px-4 py-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-semibold uppercase tracking-widest text-white/80">
-                  {product.type}
-                </span>
-              </div>
-            </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 mb-24">
 
-            {/* Details */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col justify-center"
-            >
-              <h1 className="text-3xl md:text-5xl font-bold mb-5 tracking-tighter text-white">{product.title}</h1>
+            {/* ═══════════════════════════════════════
+                LEFT COLUMN — Product Image + Context
+                ═══════════════════════════════════════ */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Product Image — Premium Container */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="relative aspect-[4/5] rounded-2xl overflow-hidden"
+                style={{
+                  background: 'var(--surface-1)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  boxShadow: '0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)'
+                }}
+              >
+                <img
+                  src={getImageUrl(product)}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute bottom-5 left-5">
+                  <span className="px-3.5 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.12em] text-white/80"
+                    style={{ background: 'var(--surface-1)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    {product.type}
+                  </span>
+                </div>
+              </motion.div>
 
-              <div className="flex items-center mb-7">
-                <div className="text-3xl font-bold text-[#FFD700]" style={{ textShadow: '0 0 20px rgba(255,215,0,0.2)' }}>₹{product.price}</div>
-                {product.duration && (
-                  <div className="ml-5 flex items-center text-white/40 text-[11px] font-medium uppercase tracking-widest">
-                    <Clock size={14} className="mr-1.5" /> {product.duration}
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-8">
-                <p className="text-white/50 text-base font-light leading-relaxed">
-                  {product.description}
-                </p>
-              </div>
-
-              <div className="mb-10">
-                <h3 className="text-[11px] font-semibold text-white/60 mb-4 uppercase tracking-[0.15em]">Key Benefits</h3>
+              {/* ── What You'll Learn — Emotional Triggers ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="checkout-card p-6 space-y-4"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BookOpen size={16} className="text-[#FFD700]/60" />
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-[0.08em]">What You'll Learn</h3>
+                </div>
                 <ul className="space-y-3">
-                  {benefitsList.map((benefit, i) => (
-                    <li key={i} className="flex items-start">
-                      <CheckCircle className="text-[#FFD700]/70 mr-3 shrink-0 mt-0.5" size={16} />
-                      <span className="text-white/60 font-light text-sm">{benefit}</span>
+                  {learningList.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <CheckCircle size={14} className="text-[#FFD700]/50 shrink-0 mt-0.5" />
+                      <span className="text-white/45 text-[13px] font-light leading-relaxed">{item}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
+            </div>
 
-              {learningList.length > 0 && (
-                <div className="mb-10">
-                  <h3 className="text-[11px] font-semibold text-white/60 mb-4 uppercase tracking-[0.15em]">What You'll Learn</h3>
-                  <ul className="space-y-3">
-                    {learningList.map((item, i) => (
-                      <li key={i} className="flex items-start">
-                        <div className="w-1 h-1 rounded-full bg-[#FFD700]/50 mr-3 shrink-0 mt-2" />
-                        <span className="text-white/60 font-light text-sm">{item}</span>
+            {/* ═══════════════════════════════════════
+                RIGHT COLUMN — Details + Checkout
+                ═══════════════════════════════════════ */}
+            <div className="lg:col-span-7 space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="space-y-5"
+              >
+                {/* Title */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-white leading-[1.1]">{product.title}</h1>
+
+                {/* Price — With Strikethrough for Perceived Value */}
+                <div className="flex items-baseline gap-4">
+                  <div className="text-3xl font-bold text-[#FFD700]" style={{ textShadow: '0 0 30px rgba(255,215,0,0.15)' }}>
+                    ₹{product.price}
+                  </div>
+                  <div className="text-lg text-white/20 line-through font-light">
+                    ₹{originalPrice}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-green-400/70 bg-green-400/[0.06] px-2.5 py-1 rounded-full">
+                    {Math.round((1 - product.price / originalPrice) * 100)}% Off
+                  </span>
+                  {product.duration && (
+                    <div className="flex items-center text-white/30 text-[11px] font-medium uppercase tracking-[0.1em]">
+                      <Clock size={13} className="mr-1" /> {product.duration}
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <p className="text-white/40 text-base font-light leading-[1.75] max-w-xl">
+                  {product.description}
+                </p>
+
+                {/* Key Benefits */}
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.15em]">Key Benefits</h3>
+                  <ul className="space-y-2.5">
+                    {benefitsList.map((benefit, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <Star size={13} className="text-[#FFD700]/50 shrink-0 mt-0.5" />
+                        <span className="text-white/45 text-sm font-light leading-relaxed">{benefit}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              )}
+              </motion.div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              {/* ── Checkout ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+              >
                 <RazorpayCheckout
                   product={product}
                   onSuccess={handlePaymentSuccess}
-                  className="w-full sm:w-auto"
+                  className="w-full"
                 />
-              </div>
+              </motion.div>
 
               {/* Trust Signals */}
-              <div className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-white/30 text-[10px] uppercase tracking-[0.12em]">
-                <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-[#FFD700]/50" /> Secure Payment</span>
-                <span className="flex items-center gap-1.5"><Zap size={12} className="text-[#FFD700]/50" /> Instant Access</span>
-                <span className="flex items-center gap-1.5"><Mail size={12} className="text-[#FFD700]/50" /> Email Delivery</span>
+              <div className="trust-bar pt-2">
+                <span><ShieldCheck size={12} className="text-[#FFD700]/40" /> Secure Payment</span>
+                <span><Zap size={12} className="text-[#FFD700]/40" /> Instant Access</span>
+                <span><Mail size={12} className="text-[#FFD700]/40" /> Email Delivery</span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Related Products */}
+          {/* ═══════════════════════════════════════
+              RELATED PRODUCTS
+              ═══════════════════════════════════════ */}
           {relatedProducts.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="border-t border-white/[0.04] pt-16"
+              className="border-t border-white/[0.04] pt-14"
             >
-              <h2 className="text-xl font-semibold mb-8 tracking-tight text-white">Similar Resources</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <h2 className="text-lg font-semibold mb-7 tracking-tight text-white/80">You May Also Like</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                 {relatedProducts.map((rel) => (
-                  <Link key={rel.id} to={`/product/${rel.id}`} className="group">
-                    <div className="glass-card rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700]/25 hover:shadow-[0_8px_30px_rgba(255,215,0,0.08)]">
+                  <Link key={rel.id} to={`/product/${rel.id}`} className="group interactive-hover">
+                    <div className="glass-card rounded-xl overflow-hidden">
                       <div className="aspect-[4/3] overflow-hidden relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10" />
                         <img
                           src={getImageUrl(rel)}
                           alt={rel.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       </div>
-                      <div className="p-5">
-                        <h3 className="text-base font-semibold text-white mb-1.5 group-hover:text-[#FFD700] transition-colors line-clamp-1">{rel.title}</h3>
-                        <span className="text-base font-bold text-white">₹{rel.price}</span>
+                      <div className="p-4">
+                        <h3 className="text-sm font-semibold text-white mb-1 group-hover:text-[#FFD700] transition-colors line-clamp-1">{rel.title}</h3>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-bold text-white">₹{rel.price}</span>
+                          <span className="text-[11px] text-white/15 line-through">₹{Math.round(rel.price * 2.5)}</span>
+                        </div>
                       </div>
                     </div>
                   </Link>

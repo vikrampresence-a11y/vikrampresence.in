@@ -11,9 +11,11 @@
     --gold-dim: rgba(255, 215, 0, 0.15);
     --gold-glow: rgba(255, 215, 0, 0.4);
     --gold-glow-strong: rgba(255, 215, 0, 0.6);
-    --surface-1: #0A0A0A;
-    --surface-2: #111111;
-    --surface-3: #161616;
+    --surface-0: #080808;
+    --surface-1: #0C0C0E;
+    --surface-2: #111114;
+    --surface-3: #161619;
+    --surface-4: #1C1C20;
 
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -54,10 +56,35 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
+    background-color: var(--surface-0) !important;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* ── Custom Scrollbar ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--surface-0);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* ── Gold Selection ── */
+  ::selection {
+    background: var(--gold);
+    color: #000;
   }
 
   h1,
@@ -68,18 +95,6 @@
   h6 {
     @apply font-bold;
     letter-spacing: -0.03em;
-  }
-
-  h1 {
-    @apply text-5xl md:text-7xl;
-  }
-
-  h2 {
-    @apply text-3xl md:text-5xl;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl;
   }
 
   p {
@@ -108,30 +123,90 @@
   textarea:focus {
     @apply outline-none;
     border-color: var(--gold) !important;
-    box-shadow: 0 0 0 1px var(--gold-dim), 0 0 15px var(--gold-dim);
-  }
-
-  /* Selection color */
-  ::selection {
-    background: var(--gold);
-    color: #000;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.08), 0 0 20px rgba(255, 215, 0, 0.05);
   }
 }
 
 @layer components {
 
-  /* ── Glass Card ── */
+  /* ── Glass Card — Charcoal Glassmorphism ── */
   .glass-card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--surface-1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 1rem;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .glass-card:hover {
-    border-color: rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.08);
+    border-color: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.04);
+  }
+
+  /* ── Checkout Card — Premium Elevated ── */
+  .checkout-card {
+    background: var(--surface-1);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.25rem;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.4),
+      0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  }
+
+  /* ── Premium Input ── */
+  .premium-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.875rem;
+    padding: 1rem 1rem 1rem 2.75rem;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    outline: none;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .premium-input:focus {
+    border-color: var(--gold) !important;
+    background: var(--surface-3);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.08), 0 0 24px rgba(255, 215, 0, 0.04);
+  }
+
+  .premium-input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 300;
+  }
+
+  /* ── OTP Input — Banking Style ── */
+  .otp-input {
+    background: var(--surface-2);
+    border: 1.5px solid rgba(255, 215, 0, 0.15);
+    border-radius: 0.875rem;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5em;
+    text-align: center;
+    padding: 1rem;
+    outline: none;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .otp-input:focus {
+    border-color: var(--gold) !important;
+    background: var(--surface-3);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1), 0 0 30px rgba(255, 215, 0, 0.06);
+  }
+
+  .otp-input::placeholder {
+    color: rgba(255, 255, 255, 0.12);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    font-weight: 400;
   }
 
   /* ── Gold Glow Utilities ── */
@@ -151,11 +226,11 @@
   .trust-bar {
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
-    padding: 1rem 0;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.75rem;
+    padding: 0.75rem 0;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -164,7 +239,61 @@
   .trust-bar span {
     display: flex;
     align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* ── Trust Badge Row ── */
+  .trust-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    background: var(--surface-2);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 0.875rem;
+  }
+
+  .trust-badge {
+    display: flex;
+    align-items: center;
     gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .trust-badge svg {
+    color: rgba(255, 215, 0, 0.5);
+  }
+
+  /* ── Verified Block ── */
+  .verified-block {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.875rem 1.125rem;
+    background: rgba(74, 222, 128, 0.04);
+    border: 1px solid rgba(74, 222, 128, 0.15);
+    border-radius: 0.875rem;
+  }
+
+  /* ── Sticky Mobile CTA ── */
+  @media (max-width: 640px) {
+    .sticky-cta {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 1rem 1.25rem;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, var(--surface-0) 80%, transparent);
+      backdrop-filter: blur(20px);
+    }
   }
 }
 

@@ -4,7 +4,7 @@
 
 html,
 body {
-  background-color: #000000 !important;
+  background-color: #080808 !important;
   background-image: none !important;
   overflow-x: hidden;
 }
@@ -16,7 +16,7 @@ body {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
 
   to {
@@ -28,7 +28,7 @@ body {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(30px);
   }
 
   to {
@@ -37,16 +37,16 @@ body {
   }
 }
 
-/* CTA Button — Subtle gold pulse glow */
-@keyframes pulseGold {
+/* CTA — Soft diffuse gold glow (NOT neon) */
+@keyframes ctaGlow {
 
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 32px rgba(255, 215, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -61,7 +61,7 @@ body {
   }
 }
 
-/* Subtle background grain for hero */
+/* Subtle grain for hero */
 @keyframes grain {
 
   0%,
@@ -106,6 +106,60 @@ body {
   }
 }
 
+/* Success pulse for verified state */
+@keyframes successPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.2);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+/* Slide-in for OTP field */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    max-height: 120px;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in for buy button */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress ring for cooldown */
+@keyframes cooldownSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ═══════════════════════════════════════════════
    ANIMATION CLASSES
    ═══════════════════════════════════════════════ */
@@ -113,8 +167,8 @@ body {
 /* Scroll reveal */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .scroll-reveal.revealed {
@@ -128,8 +182,8 @@ body {
 }
 
 .hover-lift:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px -12px rgba(255, 215, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px -12px rgba(255, 215, 0, 0.1);
 }
 
 .hover-glow {
@@ -137,11 +191,11 @@ body {
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.2);
 }
 
-/* Button hover effects */
+/* Button sweep */
 .btn-primary {
   position: relative;
   overflow: hidden;
@@ -156,7 +210,7 @@ body {
   left: 0;
   width: 0;
   height: 100%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   transition: width 0.4s cubic-bezier(0.77, 0, 0.175, 1);
   z-index: -1;
 }
@@ -165,17 +219,17 @@ body {
   width: 100%;
 }
 
-/* Page load animation */
+/* Page load */
 .page-load {
-  animation: fadeInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ── Pulse gold (CTA buttons) ── */
-.animate-pulse-gold {
-  animation: pulseGold 2.5s ease-in-out infinite;
+/* ── CTA glow (subtle, diffuse, NOT neon) ── */
+.animate-cta-glow {
+  animation: ctaGlow 3s ease-in-out infinite;
 }
 
-/* ── Shimmer sweep (buttons) ── */
+/* ── Shimmer sweep ── */
 .shimmer-btn {
   position: relative;
   overflow: hidden;
@@ -188,25 +242,25 @@ body {
   left: 0;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-  animation: shimmer 3s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  animation: shimmer 3.5s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* ── Grain texture overlay ── */
+/* ── Grain texture ── */
 .grain-overlay::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.03;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 128px;
   animation: grain 8s steps(10) infinite;
 }
 
-/* ── Radial gold glow (hero background) ── */
+/* ── Radial gold glow ── */
 .radial-gold-glow {
   position: relative;
 }
@@ -217,20 +271,49 @@ body {
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.08) 0%, transparent 70%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Social icon glow */
+/* ── Success pulse ── */
+.animate-success-pulse {
+  animation: successPulse 1.5s ease-in-out 1;
+}
+
+/* ── OTP slide reveal ── */
+.animate-slide-down {
+  animation: slideDown 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Buy button reveal ── */
+.animate-reveal-up {
+  animation: revealUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Social icon */
 .social-icon {
-  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3));
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.2));
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .social-icon:hover {
-  transform: scale(1.15);
-  filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+}
+
+/* ── Interactive hover for clickable elements ── */
+.interactive-hover {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease;
+}
+
+.interactive-hover:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.interactive-hover:active {
+  transform: scale(0.98);
 }
