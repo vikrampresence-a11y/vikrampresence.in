@@ -18,6 +18,7 @@ import RefundPolicyPage from './pages/RefundPolicyPage';
 import ThankYouPage from './pages/ThankYouPage';
 import ShortLinkPage from './pages/ShortLinkPage';
 import AdminPage from './pages/AdminPage';
+import AdminPortal from './pages/AdminPortal';
 import LoginPage from './pages/LoginPage';
 import MyProductsPage from './pages/MyProductsPage';
 import { Toaster } from '@/components/ui/toaster';
@@ -42,37 +43,45 @@ function App() {
             <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
           </Helmet>
           <ScrollToTop />
-          <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
-            <Header />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/shop" element={<ShopPage />} />
-                <Route path="/ebooks" element={<EbooksPage />} />
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/product/:id" element={<ProductDetailPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/thank-you" element={<ThankYouPage />} />
+          <Routes>
+            {/* ═══ Elite Admin Portal — Fully standalone, no Header/Footer ═══ */}
+            <Route path="/admin-vikram" element={<AdminPortal />} />
 
-                {/* Auth Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
+            {/* ═══ Main Site — with Header + Footer ═══ */}
+            <Route path="*" element={
+              <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
+                <Header />
+                <main className="flex-grow">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/ebooks" element={<EbooksPage />} />
+                    <Route path="/courses" element={<CoursesPage />} />
+                    <Route path="/product/:id" element={<ProductDetailPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/thank-you" element={<ThankYouPage />} />
 
-                {/* Policy Routes */}
-                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-                <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
 
-                {/* Secret Admin Portal — No Header/Footer */}
-                <Route path="/admin" element={<AdminPage />} />
+                    {/* Policy Routes */}
+                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                    <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
-                {/* Short branded link from SMS */}
-                <Route path="/t/:paymentId" element={<ShortLinkPage />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
+                    {/* Legacy Admin */}
+                    <Route path="/admin" element={<AdminPage />} />
+
+                    {/* Short branded link from SMS */}
+                    <Route path="/t/:paymentId" element={<ShortLinkPage />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            } />
+          </Routes>
           <Toaster />
         </Router>
       </PaymentProvider>
