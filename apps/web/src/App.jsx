@@ -22,7 +22,7 @@ import LoginPage from './pages/LoginPage';
 import MyProductsPage from './pages/MyProductsPage';
 import { Toaster } from '@/components/ui/toaster';
 import { PaymentProvider } from '@/context/PaymentContext.jsx';
-import { useAuth } from '@/context/AuthContext.jsx';
+import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -34,47 +34,49 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <PaymentProvider>
-      <Router>
-        <Helmet>
-          <title>Vikram Presence | Digital Products</title>
-          <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
-        </Helmet>
-        <ScrollToTop />
-        <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
-          <Header />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/ebooks" element={<EbooksPage />} />
-              <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/product/:id" element={<ProductDetailPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/thank-you" element={<ThankYouPage />} />
+    <AuthProvider>
+      <PaymentProvider>
+        <Router>
+          <Helmet>
+            <title>Vikram Presence | Digital Products</title>
+            <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
+          </Helmet>
+          <ScrollToTop />
+          <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
+            <Header />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/ebooks" element={<EbooksPage />} />
+                <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/thank-you" element={<ThankYouPage />} />
 
-              {/* Auth Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
+                {/* Auth Routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
 
-              {/* Policy Routes */}
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-              <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                {/* Policy Routes */}
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
-              {/* Secret Admin Portal — No Header/Footer */}
-              <Route path="/admin" element={<AdminPage />} />
+                {/* Secret Admin Portal — No Header/Footer */}
+                <Route path="/admin" element={<AdminPage />} />
 
-              {/* Short branded link from SMS */}
-              <Route path="/t/:paymentId" element={<ShortLinkPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
-      </Router>
-    </PaymentProvider>
+                {/* Short branded link from SMS */}
+                <Route path="/t/:paymentId" element={<ShortLinkPage />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </Router>
+      </PaymentProvider>
+    </AuthProvider>
   );
 }
 
