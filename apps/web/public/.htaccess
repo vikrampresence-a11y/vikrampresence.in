@@ -13,6 +13,9 @@
 	RewriteRule ^ index.html [L]
 </IfModule>
 
+# Hostinger CDN fallback — if CDN intercepts 404 before Apache rewrite
+ErrorDocument 404 /index.html
+
 <IfModule mod_headers.c>
 	Header set X-Powered-By "Hostinger Horizons"
 
