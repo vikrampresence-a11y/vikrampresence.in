@@ -115,6 +115,8 @@ export const createOrder = async (req, res) => {
             productId: productId,
             userId: userId || 'guest',
             productTitle: productRecord?.title || productTitle || '',
+            customer_email: customerEmail || '',
+            customer_phone: customerPhone || '',
         }
     };
 

@@ -96,6 +96,7 @@ const CheckoutButton = ({
                     productTitle,
                     customerEmail: currentUser?.email || '',
                     customerName: currentUser?.name || '',
+                    customerPhone: currentUser?.phone || '',
                 }),
             });
 

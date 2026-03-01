@@ -7,6 +7,7 @@ import paymentRouter from './payment.js';
 import ebooksRouter from './ebooks.js';
 import deliveryRouter from './delivery.js';
 import verificationRouter from './verification.js';
+import webhookRouter from './webhook.js';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ export default () => {
     router.use('/payment', paymentRouter);
     router.use('/ebooks', ebooksRouter);
     router.use('/verification', verificationRouter);
+    router.use('/', webhookRouter);
     router.use('/', deliveryRouter);
 
     return router;

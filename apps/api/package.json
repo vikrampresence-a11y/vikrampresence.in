@@ -13,13 +13,13 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
+    "firebase-admin": "^13.0.0",
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.7",
     "pocketbase": "^0.25.0",
     "razorpay": "^2.9.2",
-    "resend": "^6.9.3",
     "twilio": "^4.0.0"
   },
   "devDependencies": {

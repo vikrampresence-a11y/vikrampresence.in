@@ -38,6 +38,11 @@ app.use(cors({
 	credentials: true,
 }));
 app.use(morgan('combined'));
+
+// ── CRITICAL: Webhook route needs RAW body for HMAC signature verification ──
+// This MUST come BEFORE express.json() to preserve the raw body buffer
+app.use('/razorpay-webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
