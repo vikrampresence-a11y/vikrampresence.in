@@ -17,8 +17,8 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState('');
   const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [emailOtp, setEmailOtp] = useState(['', '', '', '']);
-  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const [emailOtp, setEmailOtp] = useState(['', '', '', '', '', '']);
+  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtpStatus, setEmailOtpStatus] = useState('idle');
   const [emailCooldown, setEmailCooldown] = useState(0);
@@ -56,10 +56,10 @@ const LoginPage = () => {
     }
     setEmailOtpStatus('sending');
     try {
-      const res = await apiServerClient.fetch('/verification/send-email-otp', {
+      const res = await apiServerClient.fetch('/api/send-email.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ action: 'send_otp', email }),
       });
       const data = await res.json();
       if (data.success) {
@@ -84,10 +84,10 @@ const LoginPage = () => {
     if (currentOtpString.length < 4) return;
     setEmailOtpStatus('verifying');
     try {
-      const res = await apiServerClient.fetch('/verification/verify-email-otp', {
+      const res = await apiServerClient.fetch('/api/send-email.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp: currentOtpString }),
+        body: JSON.stringify({ action: 'verify_otp', email, otp: currentOtpString }),
       });
       const data = await res.json();
       if (data.verified) {
@@ -95,13 +95,11 @@ const LoginPage = () => {
         setEmailOtpStatus('idle');
 
         // Auto-login logic
-        if (data.token && data.user) {
+        if (data.token && data.user && !data.user.id.startsWith('hostinger_')) {
           pb.authStore.save(data.token, data.user);
-          toast({ title: 'Login Successful', description: 'Welcome to Vikram Presence.' });
-          navigate(redirectUrl);
-        } else {
-          toast({ title: 'Error', description: 'Authentication token missing.', variant: 'destructive' });
         }
+        toast({ title: 'Login Successful', description: 'Welcome to Vikram Presence.' });
+        navigate(redirectUrl);
 
       } else {
         setEmailOtpStatus('error');
@@ -119,7 +117,7 @@ const LoginPage = () => {
     newOtp[index] = digit;
     setEmailOtp(newOtp);
 
-    if (digit && index < 3) {
+    if (digit && index < 5) {
       otpRefs[index + 1].current?.focus();
     }
   };
@@ -206,15 +204,15 @@ const LoginPage = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className={`w-14 h-16 text-center text-2xl font-bold rounded-2xl bg-[#111] border transition-all ${isEmailVerified
-                          ? 'border-[#E2F034] text-[#E2F034] shadow-[0_0_15px_rgba(226,240,52,0.2)]'
-                          : emailOtpStatus === 'error'
-                            ? 'border-red-500/50 text-red-400'
-                            : emailOtpStatus === 'verifying'
-                              ? 'border-white/30 text-white opacity-50'
-                              : 'border-white/10 text-white focus:border-[#E2F034]/50 focus:ring-1 focus:ring-[#E2F034]/50'
+                      className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-2xl bg-[#111] border transition-all ${isEmailVerified
+                        ? 'border-[#E2F034] text-[#E2F034] shadow-[0_0_15px_rgba(226,240,52,0.2)]'
+                        : emailOtpStatus === 'error'
+                          ? 'border-red-500/50 text-red-400'
+                          : emailOtpStatus === 'verifying'
+                            ? 'border-white/30 text-white opacity-50'
+                            : 'border-white/10 text-white focus:border-[#E2F034]/50 focus:ring-1 focus:ring-[#E2F034]/50'
                         }`}
-                      placeholder="0"
+                      placeholder="·"
                       disabled={isEmailVerified || emailOtpStatus === 'verifying'}
                     />
                   ))}
@@ -227,7 +225,7 @@ const LoginPage = () => {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleVerifyEmailOtp}
-                  disabled={currentOtpString.length < 4 || isEmailVerified || emailOtpStatus === 'verifying'}
+                  disabled={currentOtpString.length < 6 || isEmailVerified || emailOtpStatus === 'verifying'}
                   className="w-full py-4 rounded-2xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-black hover:bg-gray-200 shadow-lg"
                 >
                   {emailOtpStatus === 'verifying' ? (

@@ -39,11 +39,12 @@ export const PaymentProvider = ({ children }) => {
         description: `Preparing payment for ${product.name || product.title}`,
       });
 
-      // 1. Create Order on Backend
-      const orderResponse = await apiServerClient.fetch('/razorpay/create-order', {
+      // 1. Create Order on Backend (PHP Unified Endpoint)
+      const orderResponse = await apiServerClient.fetch('/api/send-email.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'create_order',
           amount: product.price,
           productId: product.id,
           productTitle: product.name || product.title,
@@ -78,11 +79,12 @@ export const PaymentProvider = ({ children }) => {
               description: "Please wait while we confirm your transaction...",
             });
 
-            // 3. Verify Payment on Backend (Triggers Email only)
-            const verifyResponse = await apiServerClient.fetch('/payment/verify-payment', {
+            // 3. Verify Payment on Backend (PHP Unified Endpoint)
+            const verifyResponse = await apiServerClient.fetch('/api/send-email.php', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                action: 'verify_payment',
                 orderId: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
                 signature: response.razorpay_signature,
