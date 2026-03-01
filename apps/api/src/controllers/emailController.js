@@ -27,6 +27,9 @@ const getGmailTransporter = () => {
       user: gmailUser,
       pass: gmailAppPassword,
     },
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 
   logger.info('✅ Gmail SMTP transporter initialized (email controller)');
