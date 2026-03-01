@@ -60,8 +60,8 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
             });
             const data = await res.json();
             if (data.success) { setEmailOtpSent(true); setEmailOtpStatus('sent'); startCooldown(); }
-            else { setEmailOtpStatus('error'); alert(data.error || 'Could not send email OTP.'); }
-        } catch { setEmailOtpStatus('error'); alert('Could not reach the server.'); }
+            else { setEmailOtpStatus('error'); alert(data.error || 'Could not send email OTP.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
+        } catch { setEmailOtpStatus('error'); alert('Could not reach the server.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
     };
 
     const handleVerifyEmailOtp = async () => {
@@ -74,8 +74,8 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
             });
             const data = await res.json();
             if (data.verified) { setIsEmailVerified(true); setEmailOtpStatus('idle'); }
-            else { setEmailOtpStatus('error'); alert(data.error || 'Incorrect code.'); }
-        } catch { setEmailOtpStatus('error'); alert('Could not verify OTP.'); }
+            else { setEmailOtpStatus('error'); alert(data.error || 'Incorrect code.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
+        } catch { setEmailOtpStatus('error'); alert('Could not verify OTP.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
     };
 
     // ═══ FIELD HANDLERS ═══

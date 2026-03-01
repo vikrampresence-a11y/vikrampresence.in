@@ -186,8 +186,8 @@ export const verifyEmailOtp = async (req, res) => {
         });
     }
 
-    // Compare OTP
-    if (storedEntry.otp !== otp.trim()) {
+    // Compare OTP (String coercion for type safety)
+    if (storedEntry.otp !== String(otp).trim()) {
         return res.status(400).json({
             verified: false,
             error: 'Incorrect OTP. Please try again.',
@@ -200,10 +200,31 @@ export const verifyEmailOtp = async (req, res) => {
 
     logger.info(`✅ Email OTP verified for ${email}`);
 
-    // ── Auto-Account Creation via PocketBase ──
+    // ── Auto-Account Creation via PocketBase (optional) ──
+    // Skip entirely if PocketBase credentials are not configured
+    const pbAdminEmail = process.env.PB_ADMIN_EMAIL;
+    const pbAdminPassword = process.env.PB_ADMIN_PASSWORD;
+
+    if (!pbAdminEmail || !pbAdminPassword) {
+        logger.info(`PocketBase credentials not configured — skipping auto-account for ${email}`);
+        return res.status(200).json({
+            verified: true,
+            message: 'Email verified successfully',
+        });
+    }
+
     try {
         if (!pb.authStore.isValid) {
             await authenticateAdmin();
+        }
+
+        // Verify admin auth actually succeeded before making DB calls
+        if (!pb.authStore.isValid) {
+            logger.warn(`PocketBase admin auth failed — skipping auto-account for ${email}`);
+            return res.status(200).json({
+                verified: true,
+                message: 'Email verified successfully',
+            });
         }
 
         let userRecord;
@@ -214,9 +235,6 @@ export const verifyEmailOtp = async (req, res) => {
             userRecord = await pb.collection('users').getFirstListItem(`email="${email}"`);
             logger.info(`User already exists for email: ${email}`);
 
-            // We need to generate a token for this user so frontend can log in. 
-            // Since we are admin, we can't easily impersonate without knowing the password, but we can reset or issue a token via impersonation if configured, OR we can generate a random password, update the user, and auth.
-            // A safer flow is generating an auth token directly if PocketBase version allows, but lacking that, we can simply generate a new temporary password, update it, and authenticate to get the token.
             const tempPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
             await pb.collection('users').update(userRecord.id, {
                 password: tempPassword,
@@ -230,25 +248,29 @@ export const verifyEmailOtp = async (req, res) => {
             await authenticateAdmin();
 
         } catch (err) {
-            // 2. User doesn't exist, create them
-            const generatedPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
-            logger.info(`Creating new user account for: ${email}`);
+            // Only treat as "user not found" if it's a 404-style error
+            if (err?.status === 404 || err?.message?.includes('no rows') || err?.message?.includes('not found')) {
+                // 2. User doesn't exist, create them
+                const generatedPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
+                logger.info(`Creating new user account for: ${email}`);
 
-            userRecord = await pb.collection('users').create({
-                email: email,
-                emailVisibility: true,
-                password: generatedPassword,
-                passwordConfirm: generatedPassword,
-                verified: true, // Auto-verify since they just passed OTP
-                name: email.split('@')[0], // Default name
-            });
+                userRecord = await pb.collection('users').create({
+                    email: email,
+                    emailVisibility: true,
+                    password: generatedPassword,
+                    passwordConfirm: generatedPassword,
+                    verified: true,
+                    name: email.split('@')[0],
+                });
 
-            // Authenticate to get their token
-            const authResult = await pb.collection('users').authWithPassword(email, generatedPassword);
-            token = authResult.token;
+                const authResult = await pb.collection('users').authWithPassword(email, generatedPassword);
+                token = authResult.token;
 
-            // Restore admin auth for backend operations
-            await authenticateAdmin();
+                await authenticateAdmin();
+            } else {
+                // Real PocketBase error (connection, auth, etc.) — rethrow to outer catch
+                throw err;
+            }
         }
 
         return res.status(200).json({
@@ -259,9 +281,8 @@ export const verifyEmailOtp = async (req, res) => {
         });
 
     } catch (pbError) {
-        logger.error(`PocketBase auto-account creation failed for ${email}:`, pbError.message);
-        // We still return true for verification so the flow doesn't completely break, 
-        // but the user won't be auto-logged in.
+        logger.error(`PocketBase auto-account creation failed for ${email}:`, pbError.message || pbError);
+        // Still return verified: true so the OTP verification flow isn't broken
         return res.status(200).json({
             verified: true,
             message: 'Email verified successfully, but auto-login failed.',
