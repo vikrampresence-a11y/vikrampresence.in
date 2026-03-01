@@ -6,35 +6,37 @@
 
 @layer base {
   :root {
-    /* ── Gold Accent System ── */
-    --gold: #FFD700;
-    --gold-dim: rgba(255, 215, 0, 0.15);
-    --gold-glow: rgba(255, 215, 0, 0.4);
-    --gold-glow-strong: rgba(255, 215, 0, 0.6);
-    --surface-0: #080808;
-    --surface-1: #0C0C0E;
-    --surface-2: #111114;
-    --surface-3: #161619;
-    --surface-4: #1C1C20;
+    /* ── Lime-Yellow Accent System (tharunspeaks style) ── */
+    --accent: #E2F034;
+    --accent-dim: rgba(226, 240, 52, 0.15);
+    --accent-glow: rgba(226, 240, 52, 0.4);
+    --accent-glow-strong: rgba(226, 240, 52, 0.6);
 
-    --background: 0 0% 3.9%;
+    /* ── Deep Navy Surface System ── */
+    --surface-0: #060610;
+    --surface-1: #0A0A18;
+    --surface-2: #0E0E1C;
+    --surface-3: #131322;
+    --surface-4: #1A1A2E;
+
+    --background: 240 40% 3%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 240 40% 4%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 240 40% 4%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    --primary-foreground: 240 40% 5%;
+    --secondary: 240 20% 10%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
+    --muted: 240 20% 10%;
     --muted-foreground: 0 0% 63.9%;
     --accent: 0 0% 14.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --border: 240 20% 12%;
+    --input: 240 20% 12%;
     --ring: 0 0% 83.1%;
     --radius: 0.5rem;
     --chart-1: 220 70% 50%;
@@ -42,6 +44,12 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Legacy compat — keep gold references working for checkout */
+    --gold: #FFD700;
+    --gold-dim: rgba(255, 215, 0, 0.15);
+    --gold-glow: rgba(255, 215, 0, 0.4);
+    --gold-glow-strong: rgba(255, 215, 0, 0.6);
   }
 }
 
@@ -81,9 +89,9 @@
     background: rgba(255, 255, 255, 0.15);
   }
 
-  /* ── Gold Selection ── */
+  /* ── Accent Selection ── */
   ::selection {
-    background: var(--gold);
+    background: #E2F034;
     color: #000;
   }
 
@@ -122,26 +130,78 @@
   input:focus,
   textarea:focus {
     @apply outline-none;
-    border-color: var(--gold) !important;
-    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.08), 0 0 20px rgba(255, 215, 0, 0.05);
+    border-color: #E2F034 !important;
+    box-shadow: 0 0 0 3px rgba(226, 240, 52, 0.08), 0 0 20px rgba(226, 240, 52, 0.05);
   }
 }
 
 @layer components {
 
-  /* ── Glass Card — Charcoal Glassmorphism ── */
+  /* ═══════════════════════════════════════
+     FLOATING PILL NAVIGATION
+     ═══════════════════════════════════════ */
+  .floating-nav {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: calc(100% - 2rem);
+    max-width: 900px;
+    padding: 0.875rem 1.5rem;
+    border-radius: 9999px;
+    background: rgba(10, 10, 24, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .floating-nav.scrolled {
+    padding: 0.7rem 1.5rem;
+    background: rgba(10, 10, 24, 0.92);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ═══════════════════════════════════════
+     AMBIENT GLOW BACKGROUNDS
+     ═══════════════════════════════════════ */
+  .section-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-glow::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(226, 240, 52, 0.03) 0%, rgba(56, 189, 248, 0.02) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .section-glow-blue::before {
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.04) 0%, rgba(226, 240, 52, 0.01) 40%, transparent 70%);
+  }
+
+  /* ── Glass Card — Deep Navy Glassmorphism ── */
   .glass-card {
     background: var(--surface-1);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .glass-card:hover {
-    border-color: rgba(255, 215, 0, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.04);
+    border-color: rgba(226, 240, 52, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(226, 240, 52, 0.04);
   }
 
   /* ── Checkout Card — Premium Elevated ── */
@@ -218,17 +278,59 @@
     gap: 0.5rem;
   }
 
-  /* ── Gold Glow Utilities ── */
-  .gold-glow {
-    box-shadow: 0 0 20px var(--gold-glow);
+  /* ── Accent Glow Utilities ── */
+  .accent-glow {
+    box-shadow: 0 0 20px rgba(226, 240, 52, 0.3);
   }
 
-  .gold-glow-strong {
-    box-shadow: 0 0 40px var(--gold-glow-strong);
+  .text-accent {
+    color: #E2F034;
   }
 
-  .text-gold {
-    color: var(--gold);
+  /* ── Curriculum Numbered Card ── */
+  .curriculum-card {
+    position: relative;
+    background: var(--surface-1);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 2rem;
+    padding: 3rem 2.5rem;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .curriculum-card:hover {
+    border-color: rgba(226, 240, 52, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .curriculum-card .big-number {
+    position: absolute;
+    top: -0.5rem;
+    right: 1.5rem;
+    font-size: 10rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.02);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── FAQ Accordion ── */
+  .faq-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .faq-item:hover {
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+  /* ── Serif Italic Accent ── */
+  .serif-italic {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 400;
   }
 
   /* ── Trust Signal Bar ── */
@@ -290,6 +392,22 @@
     border-radius: 0.875rem;
   }
 
+  /* ── Social Proof Pill ── */
+  .social-proof-pill {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--surface-1);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+  }
+
+  .social-proof-pill:hover {
+    border-color: rgba(226, 240, 52, 0.1);
+  }
+
   /* ── Sticky Mobile CTA ── */
   @media (max-width: 640px) {
     .sticky-cta {
@@ -315,7 +433,6 @@
       border-radius: 0.875rem;
     }
 
-    /* Stack email + send button vertically */
     .checkout-row {
       flex-direction: column !important;
     }
@@ -327,7 +444,6 @@
       padding-bottom: 0.625rem;
     }
 
-    /* OTP row NEVER stacks */
     .otp-row {
       flex-direction: row !important;
     }

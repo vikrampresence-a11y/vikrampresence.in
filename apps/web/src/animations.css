@@ -4,7 +4,7 @@
 
 html,
 body {
-  background-color: #080808 !important;
+  background-color: #060610 !important;
   background-image: none !important;
   overflow-x: hidden;
 }
@@ -37,16 +37,16 @@ body {
   }
 }
 
-/* CTA — Soft diffuse gold glow (NOT neon) */
+/* CTA — Soft diffuse accent glow */
 @keyframes ctaGlow {
 
   0%,
   100% {
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(226, 240, 52, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   50% {
-    box-shadow: 0 4px 32px rgba(255, 215, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 32px rgba(226, 240, 52, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -183,7 +183,7 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px -12px rgba(255, 215, 0, 0.1);
+  box-shadow: 0 16px 40px -12px rgba(226, 240, 52, 0.1);
 }
 
 .hover-glow {
@@ -191,8 +191,8 @@ body {
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 24px rgba(255, 215, 0, 0.08);
-  border-color: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 24px rgba(226, 240, 52, 0.08);
+  border-color: rgba(226, 240, 52, 0.2);
 }
 
 /* Button sweep */
@@ -260,7 +260,7 @@ body {
   animation: grain 8s steps(10) infinite;
 }
 
-/* ── Radial gold glow ── */
+/* ── Radial accent glow ── */
 .radial-gold-glow {
   position: relative;
 }
@@ -271,9 +271,9 @@ body {
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.06) 0%, transparent 70%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(226, 240, 52, 0.04) 0%, rgba(56, 189, 248, 0.02) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -295,13 +295,13 @@ body {
 
 /* Social icon */
 .social-icon {
-  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.2));
+  filter: drop-shadow(0 0 12px rgba(226, 240, 52, 0.2));
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .social-icon:hover {
   transform: scale(1.1);
-  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+  filter: drop-shadow(0 0 20px rgba(226, 240, 52, 0.4));
 }
 
 /* ── Interactive hover for clickable elements ── */
@@ -316,4 +316,19 @@ body {
 
 .interactive-hover:active {
   transform: scale(0.98);
+}
+
+/* ── Infinite Marquee ── */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
 }

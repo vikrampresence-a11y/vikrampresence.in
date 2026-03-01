@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, MessageCircle } from 'lucide-react';
@@ -11,13 +10,13 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#030303] border-t border-white/[0.04] pt-16 pb-8 mt-auto">
+    <footer className="border-t border-white/[0.04] pt-16 pb-8 mt-auto" style={{ background: 'var(--surface-0)' }}>
       <div className="container mx-auto px-6 max-w-5xl">
 
         {/* Top Row — Logo + Tagline */}
         <div className="text-center mb-12">
           <Link to="/" className="inline-flex items-center space-x-3 group mb-4">
-            <span className="text-xl font-semibold text-white tracking-[0.15em] uppercase group-hover:text-[#FFD700] transition-colors duration-300">
+            <span className="text-xl font-bold text-white tracking-tight group-hover:text-[#E2F034] transition-colors duration-300">
               Vikram Presence
             </span>
           </Link>
@@ -32,7 +31,7 @@ const Footer = () => {
             <Link
               key={item}
               to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-              className="text-white/40 hover:text-[#FFD700] transition-colors text-[11px] uppercase tracking-[0.15em] font-medium"
+              className="text-white/40 hover:text-[#E2F034] transition-colors text-[11px] uppercase tracking-[0.15em] font-medium"
             >
               {item}
             </Link>
@@ -47,7 +46,7 @@ const Footer = () => {
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-[#FFD700] hover:border-[#FFD700]/30 hover:bg-[#FFD700]/5 transition-all duration-300"
+              className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-[#E2F034] hover:border-[#E2F034]/30 hover:bg-[#E2F034]/5 transition-all duration-300"
               aria-label={social.name}
             >
               <social.icon size={15} />
