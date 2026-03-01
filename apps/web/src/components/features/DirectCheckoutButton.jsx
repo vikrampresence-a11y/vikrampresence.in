@@ -17,6 +17,12 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
 
     const API_URL = import.meta.env.DEV ? 'http://localhost:3001' : '/hcgi/api';
 
+    // ── Detect hosting environment ──
+    // vikrampresence.shop uses PHP backend, vikrampresence.in uses Node.js API
+    const isShopDomain = typeof window !== 'undefined' && window.location.hostname.includes('vikrampresence.shop');
+    const PHP_API = '/api/send-email.php';
+    const OTP_LENGTH = isShopDomain ? 6 : 4;
+
     // ── Email OTP State ──
     const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [emailOtp, setEmailOtp] = useState('');
@@ -54,10 +60,20 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
         if (!email || !email.includes('@') || email.length < 5) { alert('Enter a valid email address.'); return; }
         setEmailOtpStatus('sending');
         try {
-            const res = await fetch(`${API_URL}/verification/send-email-otp`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
-            });
+            let res;
+            if (isShopDomain) {
+                // PHP backend: single endpoint with action field
+                res = await fetch(PHP_API, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'send_otp', email }),
+                });
+            } else {
+                // Node.js API: separate endpoints
+                res = await fetch(`${API_URL}/verification/send-email-otp`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+            }
             const data = await res.json();
             if (data.success) { setEmailOtpSent(true); setEmailOtpStatus('sent'); startCooldown(); }
             else { setEmailOtpStatus('error'); alert(data.error || 'Could not send email OTP.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
@@ -65,13 +81,23 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     };
 
     const handleVerifyEmailOtp = async () => {
-        if (!emailOtp || emailOtp.length < 4) { alert('Enter the 4-digit code.'); return; }
+        if (!emailOtp || emailOtp.length < OTP_LENGTH) { alert(`Enter the ${OTP_LENGTH}-digit code.`); return; }
         setEmailOtpStatus('verifying');
         try {
-            const res = await fetch(`${API_URL}/verification/verify-email-otp`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp: emailOtp }),
-            });
+            let res;
+            if (isShopDomain) {
+                // PHP backend: single endpoint with action field
+                res = await fetch(PHP_API, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'verify_otp', email, otp: emailOtp }),
+                });
+            } else {
+                // Node.js API: separate endpoints
+                res = await fetch(`${API_URL}/verification/verify-email-otp`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp: emailOtp }),
+                });
+            }
             const data = await res.json();
             if (data.verified) { setIsEmailVerified(true); setEmailOtpStatus('idle'); }
             else { setEmailOtpStatus('error'); alert(data.error || 'Incorrect code.'); setTimeout(() => setEmailOtpStatus('idle'), 2000); }
@@ -214,17 +240,17 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"
-                                                    maxLength={4}
-                                                    placeholder="• • • •"
+                                                    maxLength={OTP_LENGTH}
+                                                    placeholder={OTP_LENGTH === 6 ? '• • • • • •' : '• • • •'}
                                                     value={emailOtp}
                                                     onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-                                                    aria-label="Enter 4-digit OTP code"
+                                                    aria-label={`Enter ${OTP_LENGTH}-digit OTP code`}
                                                     className="otp-input flex-1"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleVerifyEmailOtp}
-                                                    disabled={emailOtpStatus === 'verifying' || emailOtp.length < 4}
+                                                    disabled={emailOtpStatus === 'verifying' || emailOtp.length < OTP_LENGTH}
                                                     aria-label="Verify OTP"
                                                     className="px-5 py-3 bg-[#FFD700] text-black rounded-[0.875rem] text-[10px] font-extrabold tracking-[0.08em] uppercase disabled:opacity-30 hover:bg-yellow-400 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap interactive-hover"
                                                 >
@@ -234,7 +260,7 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                                                     Verify
                                                 </button>
                                             </div>
-                                            <p className="text-white/20 text-[10px] mt-1.5 ml-1">Check your inbox — enter the 4-digit code</p>
+                                            <p className="text-white/20 text-[10px] mt-1.5 ml-1">Check your inbox — enter the {OTP_LENGTH}-digit code</p>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
