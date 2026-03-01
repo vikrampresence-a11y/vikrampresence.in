@@ -126,78 +126,43 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
     const displayPrice = `₹${(pricePaise / 100).toFixed(0)}`;
     const canPay = isEmailVerified && isValidPhone;
 
-    // ── Styles ──
-    const inputStyle = {
-        width: '100%', padding: '14px 14px 14px 40px',
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '12px', color: '#fff', fontSize: '13px', outline: 'none',
-        transition: 'border-color 0.3s', boxSizing: 'border-box',
-    };
-    const iconStyle = { position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' };
-    const sendBtnStyle = (disabled) => ({
-        padding: '14px 14px', background: 'rgba(255,204,0,0.15)', color: '#FFD700',
-        border: '1px solid rgba(255,204,0,0.3)', borderRadius: '12px', fontSize: '11px',
-        fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-        cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.4 : 1,
-        transition: 'all 0.3s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px',
-    });
-    const verifyBtnStyle = (disabled) => ({
-        padding: '14px 18px', background: '#FFD700', color: '#000', border: 'none',
-        borderRadius: '12px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em',
-        textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1, transition: 'all 0.3s', whiteSpace: 'nowrap',
-        display: 'flex', alignItems: 'center', gap: '5px',
-    });
-    const otpInputStyle = {
-        ...inputStyle, paddingLeft: '14px', textAlign: 'center', fontSize: '18px',
-        letterSpacing: '0.35em', borderColor: 'rgba(255,204,0,0.3)',
-    };
-    const verifiedStyle = {
-        display: 'flex', alignItems: 'center', gap: '8px',
-        background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)',
-        borderRadius: '12px', padding: '12px 16px',
-    };
-    const labelStyle = {
-        color: '#FFD700', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-        letterSpacing: '0.15em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px',
-    };
-
     return (
-        <div style={{ width: '100%' }}>
+        <div className="w-full space-y-4">
             {/* ═══ EMAIL SECTION ═══ */}
-            <div style={{ marginBottom: '16px' }}>
-                <div style={labelStyle}><Mail size={11} /> Email Verification</div>
+            <div>
+                <label className="flex items-center gap-1.5 text-[#FFD700]/70 text-[10px] font-semibold uppercase tracking-[0.12em] mb-2">
+                    <Mail size={10} /> Email Verification
+                </label>
                 {isEmailVerified ? (
-                    <div style={verifiedStyle}>
-                        <CheckCircle2 size={16} style={{ color: '#4ADE80' }} />
-                        <span style={{ color: '#4ADE80', fontSize: '13px', fontWeight: 500 }}>{email} — Verified</span>
+                    <div className="flex items-center gap-2 bg-green-500/[0.06] border border-green-500/20 rounded-xl px-4 py-3">
+                        <CheckCircle2 size={14} className="text-green-400" />
+                        <span className="text-green-400 text-[13px] font-medium">{email} — Verified</span>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <div style={{ position: 'relative', flex: 1 }}>
-                                <Mail size={14} style={iconStyle} />
+                    <div className="space-y-2">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Mail size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
                                 <input type="email" value={email} onChange={handleEmailChange}
-                                    placeholder="Your email address" style={inputStyle}
-                                    onFocus={(e) => { e.target.style.borderColor = 'rgba(255,204,0,0.5)'; }}
-                                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
+                                    placeholder="Your email address"
+                                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3.5 text-white text-[13px] font-light outline-none focus:border-[#FFD700]/40 transition-all duration-300 placeholder:text-white/20" />
                             </div>
                             <button type="button" onClick={handleSendEmailOtp}
                                 disabled={emailCooldown > 0 || emailOtpStatus === 'sending' || !email}
-                                style={sendBtnStyle(emailCooldown > 0 || emailOtpStatus === 'sending' || !email)}>
-                                {emailOtpStatus === 'sending' ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={11} />}
+                                className="px-4 py-3.5 bg-[#FFD700]/[0.08] text-[#FFD700] border border-[#FFD700]/20 rounded-xl text-[10px] font-bold tracking-[0.05em] uppercase disabled:opacity-30 transition-all duration-300 hover:bg-[#FFD700]/15 flex items-center gap-1.5 whitespace-nowrap">
+                                {emailOtpStatus === 'sending' ? <Loader2 size={11} className="animate-spin" /> : <Send size={10} />}
                                 {emailCooldown > 0 ? `${emailCooldown}s` : 'OTP'}
                             </button>
                         </div>
                         {emailOtpSent && (
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div className="flex gap-2">
                                 <input type="text" inputMode="numeric" maxLength={4} placeholder="4-digit code"
                                     value={emailOtp} onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-                                    style={otpInputStyle} />
+                                    className="flex-1 bg-white/[0.03] border border-[#FFD700]/20 rounded-xl px-4 py-3.5 text-white text-center text-lg tracking-[0.3em] font-medium outline-none focus:border-[#FFD700]/40 transition-all duration-300 placeholder:text-white/15 placeholder:text-sm placeholder:tracking-normal" />
                                 <button type="button" onClick={handleVerifyEmailOtp}
                                     disabled={emailOtpStatus === 'verifying' || emailOtp.length < 4}
-                                    style={verifyBtnStyle(emailOtpStatus === 'verifying' || emailOtp.length < 4)}>
-                                    {emailOtpStatus === 'verifying' ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <KeyRound size={12} />}
+                                    className="px-5 py-3.5 bg-[#FFD700] text-black rounded-xl text-[10px] font-extrabold tracking-[0.05em] uppercase disabled:opacity-40 transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap">
+                                    {emailOtpStatus === 'verifying' ? <Loader2 size={11} className="animate-spin" /> : <KeyRound size={11} />}
                                     Verify
                                 </button>
                             </div>
@@ -206,11 +171,13 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                 )}
             </div>
 
-            {/* ═══ PHONE NUMBER (Strict 10-digit, no OTP) ═══ */}
-            <div style={{ marginBottom: '16px' }}>
-                <div style={labelStyle}><Phone size={11} /> Phone Number</div>
-                <div style={{ position: 'relative' }}>
-                    <Phone size={14} style={iconStyle} />
+            {/* ═══ PHONE NUMBER ═══ */}
+            <div>
+                <label className="flex items-center gap-1.5 text-[#FFD700]/70 text-[10px] font-semibold uppercase tracking-[0.12em] mb-2">
+                    <Phone size={10} /> Phone Number
+                </label>
+                <div className="relative">
+                    <Phone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
                     <input
                         type="tel"
                         inputMode="numeric"
@@ -218,25 +185,23 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                         placeholder="Enter 10-digit mobile number"
                         value={phone}
                         onChange={handlePhoneChange}
-                        style={{ ...inputStyle, paddingRight: '40px' }}
-                        onFocus={(e) => { e.target.style.borderColor = 'rgba(255,204,0,0.5)'; }}
-                        onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-10 py-3.5 text-white text-[13px] font-light outline-none focus:border-[#FFD700]/40 transition-all duration-300 placeholder:text-white/20"
                     />
                     {phone.length > 0 && (
-                        <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)' }}>
+                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
                             {isValidPhone
-                                ? <CheckCircle2 size={18} style={{ color: '#4ADE80' }} />
-                                : <XCircle size={18} style={{ color: '#F87171' }} />}
+                                ? <CheckCircle2 size={16} className="text-green-400" />
+                                : <XCircle size={16} className="text-red-400/60" />}
                         </div>
                     )}
                 </div>
                 {phone.length > 0 && !isValidPhone && (
-                    <p style={{ color: '#F87171', fontSize: '11px', marginTop: '4px', marginLeft: '4px' }}>
+                    <p className="text-red-400/60 text-[11px] mt-1.5 ml-1">
                         Enter exactly 10 digits ({10 - phone.length} more needed)
                     </p>
                 )}
                 {isValidPhone && (
-                    <p style={{ color: '#4ADE80', fontSize: '11px', marginTop: '4px', marginLeft: '4px' }}>
+                    <p className="text-green-400/60 text-[11px] mt-1.5 ml-1">
                         ✅ Valid phone number
                     </p>
                 )}
@@ -245,21 +210,14 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
             {/* ═══ BUY BUTTON ═══ */}
             {canPay ? (
                 <button onClick={handleClick} disabled={isLoading}
-                    style={{
-                        width: '100%', background: '#ffcc00', color: '#000', padding: '18px 50px',
-                        fontWeight: 800, fontSize: '16px', letterSpacing: '0.15em', textTransform: 'uppercase',
-                        borderRadius: '50px', border: 'none', cursor: isLoading ? 'wait' : 'pointer',
-                        boxShadow: '0 0 25px rgba(255,204,0,0.8)', transition: 'all 0.3s',
-                        opacity: isLoading ? 0.7 : 1,
-                    }}
-                    onMouseEnter={(e) => { if (!isLoading) { e.currentTarget.style.boxShadow = '0 0 50px rgba(255,204,0,1)'; e.currentTarget.style.transform = 'scale(1.05)'; } }}
-                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 25px rgba(255,204,0,0.8)'; e.currentTarget.style.transform = 'scale(1)'; }}>
+                    className="w-full bg-[#FFD700] text-black py-4 font-bold text-sm uppercase tracking-[0.15em] rounded-full transition-all duration-300 disabled:opacity-60 shimmer-btn animate-pulse-gold hover:bg-yellow-400"
+                >
                     {isLoading ? 'Processing...' : `Buy Now — ${displayPrice}`}
                 </button>
             ) : (
-                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '14px', padding: '16px', textAlign: 'center' }}>
-                    <ShieldCheck size={16} style={{ color: '#FFD700', margin: '0 auto 8px' }} />
-                    <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', margin: 0 }}>
+                <div className="glass-card rounded-xl p-4 text-center">
+                    <ShieldCheck size={14} className="text-[#FFD700]/40 mx-auto mb-2" />
+                    <p className="text-white/25 text-[11px]">
                         {!isEmailVerified && !isValidPhone
                             ? 'Verify your email and enter a valid phone number to unlock payment.'
                             : !isEmailVerified ? 'Verify your email to continue.'
@@ -268,7 +226,12 @@ const DirectCheckoutButton = ({ productName, pricePaise, driveLink }) => {
                 </div>
             )}
 
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+            {/* Razorpay Trust Microcopy */}
+            {canPay && (
+                <p className="text-center text-white/15 text-[9px] uppercase tracking-[0.1em]">
+                    Powered by Razorpay · 256-bit SSL Encrypted
+                </p>
+            )}
         </div>
     );
 };

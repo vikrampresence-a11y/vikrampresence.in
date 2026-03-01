@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Loader2, CheckCircle, ArrowLeft, ShieldCheck, Clock } from 'lucide-react';
+import { Loader2, CheckCircle, ArrowLeft, ShieldCheck, Clock, Zap, Mail } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
 import RazorpayCheckout from '@/components/features/RazorpayCheckout.jsx';
 
@@ -71,7 +71,7 @@ const ProductDetailPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#FFD700] animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#FFD700] animate-spin" />
       </div>
     );
   }
@@ -80,8 +80,8 @@ const ProductDetailPage = () => {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-          <Link to="/shop" className="text-[#FFD700] hover:underline">Return to Shop</Link>
+          <h2 className="text-2xl font-semibold mb-4">Product not found</h2>
+          <Link to="/shop" className="text-[#FFD700] hover:underline text-sm uppercase tracking-widest">Return to Shop</Link>
         </div>
       </div>
     );
@@ -105,26 +105,27 @@ const ProductDetailPage = () => {
       <div className="bg-black min-h-screen text-white pt-32 pb-24 font-sans">
         <div className="container mx-auto px-6 max-w-6xl">
 
-          <Link to="/shop" className="inline-flex items-center text-white hover:text-[#FFD700] transition-colors mb-10 text-sm uppercase tracking-widest font-bold">
-            <ArrowLeft size={16} className="mr-2" /> Back to Shop
+          <Link to="/shop" className="inline-flex items-center text-white/50 hover:text-[#FFD700] transition-colors mb-10 text-[11px] uppercase tracking-[0.15em] font-medium">
+            <ArrowLeft size={14} className="mr-2" /> Back to Shop
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 mb-28">
             {/* Image */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-[#FFD700]/20 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="relative aspect-[4/5] rounded-2xl overflow-hidden glass-card"
+              style={{ boxShadow: '0 0 40px rgba(255,215,0,0.08)' }}
             >
               <img
                 src={getImageUrl(product)}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
-              <div className="absolute bottom-8 left-8">
-                <span className="px-4 py-2 bg-black/80 backdrop-blur-md border border-[#FFD700]/50 rounded-full text-xs font-bold uppercase tracking-widest text-[#FFD700] shadow-[0_0_15px_rgba(0,0,0,0.8)]">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+              <div className="absolute bottom-6 left-6">
+                <span className="px-4 py-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-semibold uppercase tracking-widest text-white/80">
                   {product.type}
                 </span>
               </div>
@@ -134,46 +135,46 @@ const ProductDetailPage = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-col justify-center"
             >
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{product.title}</h1>
+              <h1 className="text-3xl md:text-5xl font-bold mb-5 tracking-tighter text-white">{product.title}</h1>
 
-              <div className="flex items-center mb-8">
-                <div className="text-3xl font-bold text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.3)]">₹{product.price}</div>
+              <div className="flex items-center mb-7">
+                <div className="text-3xl font-bold text-[#FFD700]" style={{ textShadow: '0 0 20px rgba(255,215,0,0.2)' }}>₹{product.price}</div>
                 {product.duration && (
-                  <div className="ml-6 flex items-center text-white/70 text-sm font-bold uppercase tracking-widest">
-                    <Clock size={16} className="mr-2" /> {product.duration}
+                  <div className="ml-5 flex items-center text-white/40 text-[11px] font-medium uppercase tracking-widest">
+                    <Clock size={14} className="mr-1.5" /> {product.duration}
                   </div>
                 )}
               </div>
 
-              <div className="prose prose-invert mb-10">
-                <p className="text-white text-lg font-light leading-relaxed">
+              <div className="mb-8">
+                <p className="text-white/50 text-base font-light leading-relaxed">
                   {product.description}
                 </p>
               </div>
 
-              <div className="mb-12">
-                <h3 className="text-lg font-bold text-white mb-4 uppercase tracking-widest">Key Benefits</h3>
-                <ul className="space-y-4">
+              <div className="mb-10">
+                <h3 className="text-[11px] font-semibold text-white/60 mb-4 uppercase tracking-[0.15em]">Key Benefits</h3>
+                <ul className="space-y-3">
                   {benefitsList.map((benefit, i) => (
                     <li key={i} className="flex items-start">
-                      <CheckCircle className="text-[#FFD700] mr-3 shrink-0 mt-0.5" size={20} />
-                      <span className="text-white font-light">{benefit}</span>
+                      <CheckCircle className="text-[#FFD700]/70 mr-3 shrink-0 mt-0.5" size={16} />
+                      <span className="text-white/60 font-light text-sm">{benefit}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               {learningList.length > 0 && (
-                <div className="mb-12">
-                  <h3 className="text-lg font-bold text-white mb-4 uppercase tracking-widest">What You'll Learn</h3>
-                  <ul className="space-y-4">
+                <div className="mb-10">
+                  <h3 className="text-[11px] font-semibold text-white/60 mb-4 uppercase tracking-[0.15em]">What You'll Learn</h3>
+                  <ul className="space-y-3">
                     {learningList.map((item, i) => (
                       <li key={i} className="flex items-start">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] mr-4 shrink-0 mt-2 shadow-[0_0_5px_rgba(255,215,0,0.8)]"></div>
-                        <span className="text-white font-light">{item}</span>
+                        <div className="w-1 h-1 rounded-full bg-[#FFD700]/50 mr-3 shrink-0 mt-2" />
+                        <span className="text-white/60 font-light text-sm">{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -188,8 +189,11 @@ const ProductDetailPage = () => {
                 />
               </div>
 
-              <div className="mt-6 flex items-center justify-center sm:justify-start text-white/60 text-xs uppercase tracking-widest">
-                <ShieldCheck size={14} className="mr-2 text-[#FFD700]" /> Secure One-Time Payment
+              {/* Trust Signals */}
+              <div className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-white/30 text-[10px] uppercase tracking-[0.12em]">
+                <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-[#FFD700]/50" /> Secure Payment</span>
+                <span className="flex items-center gap-1.5"><Zap size={12} className="text-[#FFD700]/50" /> Instant Access</span>
+                <span className="flex items-center gap-1.5"><Mail size={12} className="text-[#FFD700]/50" /> Email Delivery</span>
               </div>
             </motion.div>
           </div>
@@ -200,23 +204,24 @@ const ProductDetailPage = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="border-t border-white/10 pt-20"
+              className="border-t border-white/[0.04] pt-16"
             >
-              <h2 className="text-2xl font-bold mb-10 tracking-tighter text-white">Similar Resources</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <h2 className="text-xl font-semibold mb-8 tracking-tight text-white">Similar Resources</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedProducts.map((rel) => (
                   <Link key={rel.id} to={`/product/${rel.id}`} className="group">
-                    <div className="bg-[#0a0a0a] border border-[#FFD700]/20 rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.05)] hover:shadow-[0_0_30px_rgba(255,215,0,0.2)]">
+                    <div className="glass-card rounded-2xl overflow-hidden transition-all duration-500 hover:border-[#FFD700]/25 hover:shadow-[0_8px_30px_rgba(255,215,0,0.08)]">
                       <div className="aspect-[4/3] overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
                         <img
                           src={getImageUrl(rel)}
                           alt={rel.title}
-                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       </div>
-                      <div className="p-6">
-                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{rel.title}</h3>
-                        <span className="text-lg font-bold text-white">₹{rel.price}</span>
+                      <div className="p-5">
+                        <h3 className="text-base font-semibold text-white mb-1.5 group-hover:text-[#FFD700] transition-colors line-clamp-1">{rel.title}</h3>
+                        <span className="text-base font-bold text-white">₹{rel.price}</span>
                       </div>
                     </div>
                   </Link>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, GraduationCap, Layers, Loader2 } from 'lucide-react';
+import { BookOpen, GraduationCap, Layers, Loader2, ShieldCheck, Zap, Mail } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
 
 const ShopPage = () => {
@@ -67,28 +67,34 @@ const ShopPage = () => {
       <div className="bg-black min-h-screen text-white pt-32 pb-24 font-sans">
         <div className="container mx-auto px-6 max-w-7xl">
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">Digital Store</h1>
-            <p className="text-lg text-white max-w-2xl mx-auto font-light">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tighter text-white">Digital Store</h1>
+            <div className="w-10 h-[2px] bg-[#FFD700] mx-auto mb-5 opacity-60" />
+            <p className="text-base text-white/50 max-w-xl mx-auto font-light">
               Premium resources designed to help you build discipline and find clarity.
             </p>
           </motion.div>
 
+          {/* Trust Bar */}
+          <div className="trust-bar mb-12">
+            <span><ShieldCheck size={13} className="text-[#FFD700]/50" /> Secure Payment</span>
+            <span><Zap size={13} className="text-[#FFD700]/50" /> Instant Access</span>
+            <span><Mail size={13} className="text-[#FFD700]/50" /> Email Delivery</span>
+          </div>
+
           {/* Category Filters */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="flex flex-wrap justify-center gap-3 mb-16 max-w-3xl mx-auto">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveFilter(cat.id)}
-                className={`group flex items-center justify-center space-x-3 p-6 rounded-2xl border transition-all duration-300 ${activeFilter === cat.id
-                    ? 'bg-[#FFD700]/20 border-[#FFD700] shadow-[0_0_30px_rgba(255,215,0,0.4)]'
-                    : 'bg-[#0a0a0a] border-[#FFD700]/30 hover:border-[#FFD700] hover:shadow-[0_0_20px_rgba(255,215,0,0.2)]'
+                className={`group flex items-center space-x-2.5 px-6 py-3 rounded-full border text-[12px] font-medium uppercase tracking-[0.12em] transition-all duration-300 ${activeFilter === cat.id
+                  ? 'bg-[#FFD700]/10 border-[#FFD700]/40 text-[#FFD700] shadow-[0_0_20px_rgba(255,215,0,0.15)]'
+                  : 'bg-white/[0.02] border-white/[0.08] text-white/50 hover:border-white/20 hover:text-white/80'
                   }`}
               >
-                <cat.icon className={activeFilter === cat.id ? 'text-[#FFD700]' : 'text-[#FFD700]/70 group-hover:text-[#FFD700]'} size={24} />
-                <span className={`font-bold uppercase tracking-widest text-sm ${activeFilter === cat.id ? 'text-[#FFD700]' : 'text-white'}`}>
-                  {cat.title}
-                </span>
+                <cat.icon size={16} className={activeFilter === cat.id ? 'text-[#FFD700]' : 'text-white/30 group-hover:text-white/60'} />
+                <span>{cat.title}</span>
               </button>
             ))}
           </motion.div>
@@ -96,56 +102,56 @@ const ShopPage = () => {
           {/* Products Grid */}
           {isLoading ? (
             <div className="flex justify-center items-center py-32">
-              <Loader2 className="w-12 h-12 text-[#FFD700] animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#FFD700] animate-spin" />
             </div>
           ) : error ? (
-            <div className="text-center py-20 text-red-400 bg-red-500/10 rounded-2xl border border-red-500/20">
-              <p>Error loading products: {error}</p>
+            <div className="text-center py-20 text-red-400/80 glass-card rounded-2xl max-w-lg mx-auto">
+              <p className="p-8">Error loading products: {error}</p>
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-32 text-white">
+            <div className="text-center py-32 text-white/30">
               <p className="text-xl">No products found in this category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {products.map((product, index) => (
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, y: 30, scale: 0.98, boxShadow: '0 0 0px rgba(255,215,0,0)', borderColor: 'rgba(255,255,255,0.05)' }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1, boxShadow: '0 0 25px rgba(255,215,0,0.15)', borderColor: 'rgba(255,215,0,0.4)' }}
-                  viewport={{ once: false, margin: "-100px" }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="bg-[#080808] border rounded-2xl overflow-hidden transition-colors duration-500 hover:-translate-y-1 flex flex-col h-full group relative"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="glass-card rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-[#FFD700]/25 hover:shadow-[0_8px_30px_rgba(255,215,0,0.08)] flex flex-col h-full group relative"
                 >
                   <div className="aspect-[4/3] overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
                     <img
                       src={getImageUrl(product)}
                       alt={product.title}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute top-4 left-4 z-20">
-                      <span className="px-3 py-1 bg-black/80 backdrop-blur-md border border-[#FFD700]/50 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#FFD700] shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+                      <span className="px-3 py-1 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-semibold uppercase tracking-widest text-white/80">
                         {product.type}
                       </span>
                     </div>
                   </div>
-                  <div className="p-8 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#FFD700] transition-colors drop-shadow-sm line-clamp-1">{product.title}</h3>
-                    <p className="text-white text-sm font-light line-clamp-2 mb-8 flex-grow">{product.description}</p>
+                  <div className="p-7 flex flex-col flex-grow">
+                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-[#FFD700] transition-colors duration-300 line-clamp-1">{product.title}</h3>
+                    <p className="text-white/30 text-sm font-light line-clamp-2 mb-6 flex-grow">{product.description}</p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <span className="text-2xl font-bold text-white">₹{product.price}</span>
-                      <div className="flex space-x-3">
+                      <span className="text-xl font-bold text-white">₹{product.price}</span>
+                      <div className="flex space-x-2.5">
                         <Link
                           to={`/product/${product.id}`}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold uppercase tracking-widest rounded-full transition-colors"
+                          className="px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 hover:text-white text-[11px] font-medium uppercase tracking-widest rounded-full transition-all duration-300"
                         >
                           Details
                         </Link>
                         <Link
                           to={`/product/${product.id}`}
-                          className="px-6 py-2.5 bg-[#FFD700] hover:bg-yellow-400 text-black text-xs font-bold uppercase tracking-widest rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(255,215,0,0.4)]"
+                          className="px-5 py-2 bg-[#FFD700] hover:bg-yellow-400 text-black text-[11px] font-bold uppercase tracking-widest rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(255,215,0,0.3)]"
                         >
                           Buy Now
                         </Link>
