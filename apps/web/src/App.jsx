@@ -23,6 +23,7 @@ import MyProductsPage from './pages/MyProductsPage';
 import { Toaster } from '@/components/ui/toaster';
 import { PaymentProvider } from '@/context/PaymentContext.jsx';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
+import { SiteSettingsProvider } from '@/context/SiteSettingsContext.jsx';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -34,54 +35,56 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <PaymentProvider>
-        <Router>
-          <Helmet>
-            <title>Vikram Presence | Digital Products</title>
-            <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
-          </Helmet>
-          <ScrollToTop />
-          <Routes>
-            {/* ═══ Elite Admin Portal — Fully standalone, no Header/Footer ═══ */}
-            <Route path="/admin-vikram" element={<AdminPortal />} />
+    <SiteSettingsProvider>
+      <AuthProvider>
+        <PaymentProvider>
+          <Router>
+            <Helmet>
+              <title>Vikram Presence | Digital Products</title>
+              <meta name="description" content="Unleash your digital presence. Get clear. Build habits. Be confident." />
+            </Helmet>
+            <ScrollToTop />
+            <Routes>
+              {/* ═══ Elite Admin Portal — Fully standalone, no Header/Footer ═══ */}
+              <Route path="/admin-vikram" element={<AdminPortal />} />
 
-            {/* ═══ Main Site — with Header + Footer ═══ */}
-            <Route path="*" element={
-              <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
-                <Header />
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/shop" element={<ShopPage />} />
-                    <Route path="/ebooks" element={<EbooksPage />} />
-                    <Route path="/courses" element={<CoursesPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/thank-you" element={<ThankYouPage />} />
+              {/* ═══ Main Site — with Header + Footer ═══ */}
+              <Route path="*" element={
+                <div className="flex flex-col min-h-screen bg-black font-sans selection:bg-[#E2F034] selection:text-black">
+                  <Header />
+                  <main className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/shop" element={<ShopPage />} />
+                      <Route path="/ebooks" element={<EbooksPage />} />
+                      <Route path="/courses" element={<CoursesPage />} />
+                      <Route path="/product/:id" element={<ProductDetailPage />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/thank-you" element={<ThankYouPage />} />
 
-                    {/* Auth Routes */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
+                      {/* Auth Routes */}
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/my-products" element={<ProtectedRoute><MyProductsPage /></ProtectedRoute>} />
 
-                    {/* Policy Routes */}
-                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                    <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-                    <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                      {/* Policy Routes */}
+                      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                      <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                      <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
-                    {/* Short branded link from SMS */}
-                    <Route path="/t/:paymentId" element={<ShortLinkPage />} />
-                  </Routes>
-                </main>
-                <Footer />
-              </div>
-            } />
-          </Routes>
-          <Toaster />
-        </Router>
-      </PaymentProvider>
-    </AuthProvider>
+                      {/* Short branded link from SMS */}
+                      <Route path="/t/:paymentId" element={<ShortLinkPage />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                </div>
+              } />
+            </Routes>
+            <Toaster />
+          </Router>
+        </PaymentProvider>
+      </AuthProvider>
+    </SiteSettingsProvider>
   );
 }
 

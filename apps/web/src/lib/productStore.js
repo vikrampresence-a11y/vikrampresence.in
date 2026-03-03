@@ -152,4 +152,35 @@ export const deleteProduct = async (productId) => {
     saveLocalProducts(products);
 };
 
+/**
+ * Update an existing product by ID.
+ */
+export const updateProduct = async (productId, updates) => {
+    const productData = {
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.pricePaise !== undefined && { pricePaise: updates.pricePaise }),
+        ...(updates.coverImageUrl !== undefined && { coverImageUrl: updates.coverImageUrl }),
+        ...(updates.driveLink !== undefined && { driveLink: updates.driveLink }),
+        ...(updates.type !== undefined && { type: updates.type }),
+        updatedAt: new Date().toISOString(),
+    };
+
+    if (isFirebaseConfigured() && !productId.startsWith('local-')) {
+        try {
+            const { updateDoc } = await import('firebase/firestore');
+            await updateDoc(doc(db, 'products', productId), productData);
+            return;
+        } catch (err) {
+            console.warn('Firestore update failed, updating localStorage:', err);
+        }
+    }
+
+    // localStorage fallback
+    const products = getLocalProducts().map((p) =>
+        p.id === productId ? { ...p, ...productData } : p
+    );
+    saveLocalProducts(products);
+};
+
 export { isFirebaseConfigured };

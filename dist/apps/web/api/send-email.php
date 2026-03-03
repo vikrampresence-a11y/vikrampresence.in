@@ -7,7 +7,9 @@
  * Handles:
  * 1. 6-Digit OTP Generation & Emailing via Gmail SMTP
  * 2. Razorpay Order Creation
- * 3. Razorpay Payment Verification & Fulfillment Email
+ * 3. Razorpay Payment Verification & Fulfillment (Email + SMS)
+ * 4. Dedicated Product Delivery (Email + SMS)
+ * 5. Custom Email (Admin Emailer)
  * ═════════════════════════════════════════════════════════════════
  */
 
@@ -26,10 +28,16 @@ define('GMAIL_PASS', 'afpp hsst zfar zpaq'); // Verified App Password
 define('RAZORPAY_KEY', 'rzp_live_SKSh64mq33En2x');
 define('RAZORPAY_SECRET', 'F8062a2mw4yjR6BjdKivcOkt');
 
+// ─── FAST2SMS CONFIG ───
+// Sign up at https://www.fast2sms.com and paste your API key below
+define('FAST2SMS_API_KEY', 'YOUR_FAST2SMS_API_KEY_HERE');
+
 // Simple File-based DB for OTPs (Stored safely in a JSON file)
 $db_file = __DIR__ . '/otps.json';
 
-// SMTP Client to bypass need for Composer/PHPMailer on Hostinger
+// ═══════════════════════════════════════════════════════════════
+// SMTP Client — Gmail (no Composer needed)
+// ═══════════════════════════════════════════════════════════════
 function send_gmail_smtp($to, $subject, $body) {
     $context = stream_context_create([
         'ssl' => [
@@ -73,6 +81,96 @@ function send_gmail_smtp($to, $subject, $body) {
     if (strpos($finalRes, '250') !== false) return true;
     error_log("[SMTP Error] Data failed: " . $finalRes);
     return false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Fast2SMS — Send SMS via HTTP (India only, no packages needed)
+// ═══════════════════════════════════════════════════════════════
+function send_sms_fast2sms($phone, $message) {
+    $apiKey = FAST2SMS_API_KEY;
+    
+    // Skip if API key not configured
+    if ($apiKey === 'YOUR_FAST2SMS_API_KEY_HERE' || empty($apiKey)) {
+        error_log("[SMS] Fast2SMS API key not configured — skipping SMS");
+        return false;
+    }
+
+    // Clean phone number (remove +91, spaces, dashes)
+    $phone = preg_replace('/[^0-9]/', '', $phone);
+    if (strlen($phone) > 10) {
+        $phone = substr($phone, -10); // Take last 10 digits
+    }
+    if (strlen($phone) !== 10) {
+        error_log("[SMS] Invalid phone number: $phone");
+        return false;
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://www.fast2sms.com/dev/bulkV2');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+        'route' => 'q',      // Quick Transactional SMS
+        'message' => $message,
+        'language' => 'english',
+        'flash' => 0,
+        'numbers' => $phone,
+    ]));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: ' . $apiKey,
+        'Content-Type: application/json',
+        'Cache-Control: no-cache',
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+    if ($httpCode == 200 && isset($data['return']) && $data['return'] === true) {
+        error_log("[SMS] Sent successfully to $phone");
+        return true;
+    }
+
+    error_log("[SMS Error] HTTP $httpCode — Response: $response");
+    return false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Helper: Send product delivery email + SMS
+// ═══════════════════════════════════════════════════════════════
+function deliver_product_to_buyer($buyerEmail, $buyerPhone, $productName, $googleDriveLink, $paymentId = '') {
+    $emailSent = false;
+    $smsSent = false;
+
+    // ── 1. SEND EMAIL with Drive Link ──
+    if ($buyerEmail) {
+        $paymentInfo = $paymentId ? "<p style='color:#555;font-size:11px;margin-top:10px;'>Payment ID: $paymentId</p>" : '';
+        
+        $html = "
+        <div style='background:#0a0a0c;color:#fff;padding:60px 40px;text-align:center;font-family:Helvetica, Arial, sans-serif;'>
+            <div style='font-size:40px;margin-bottom:20px;'>🎉</div>
+            <h1 style='color:#E2F034;letter-spacing:2px;font-size:22px;text-transform:uppercase;'>Payment Successful</h1>
+            <h2 style='color:#fff;margin-bottom:10px;font-weight:300;font-size:24px;'>$productName</h2>
+            <p style='color:#888;font-size:14px;margin-bottom:30px;'>Your product is ready. Click below for instant access:</p>
+            <a href='$googleDriveLink' style='display:inline-block;background:#E2F034;color:#000;padding:18px 40px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:2px;border-radius:50px;font-size:14px;'>Access Your Product →</a>
+            <p style='color:#555;font-size:12px;margin-top:30px;'>Save this email for permanent access.</p>
+            $paymentInfo
+            <hr style='border:none;border-top:1px solid #222;margin:30px 0;'>
+            <p style='color:#333;font-size:10px;'>Vikram Presence · vikrampresence.in</p>
+        </div>";
+
+        $emailSent = send_gmail_smtp($buyerEmail, "Your Product is Ready: $productName", $html);
+    }
+
+    // ── 2. SEND SMS with Drive Link ──
+    if ($buyerPhone) {
+        $smsMessage = "Vikram Presence: Payment received for $productName. Access your product here: $googleDriveLink";
+        $smsSent = send_sms_fast2sms($buyerPhone, $smsMessage);
+    }
+
+    return ['emailSent' => $emailSent, 'smsSent' => $smsSent];
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -167,7 +265,7 @@ if ($action === 'create_order') {
 }
 
 // ═════════════════════════════════════════════════════════
-// 4. VERIFY PAYMENT & FULFILL
+// 4. VERIFY PAYMENT & FULFILL (Email + SMS)
 // ═════════════════════════════════════════════════════════
 if ($action === 'verify_payment') {
     $orderId = $input['orderId'] ?? '';
@@ -177,27 +275,76 @@ if ($action === 'verify_payment') {
     $generatedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, RAZORPAY_SECRET);
     
     if ($generatedSignature === $signature) {
-        $buyerEmail = $input['buyerEmail'];
-        $productName = $input['productName'];
-        $googleDriveLink = $input['googleDriveLink'];
+        $buyerEmail = $input['buyerEmail'] ?? '';
+        $buyerPhone = $input['buyerPhone'] ?? '';
+        $productName = $input['productName'] ?? '';
+        $googleDriveLink = $input['googleDriveLink'] ?? '';
 
-        $html = "
-        <div style='background:#0a0a0c;color:#fff;padding:60px 40px;text-align:center;font-family:Helvetica, Arial, sans-serif;'>
-            <div style='font-size:40px;margin-bottom:20px;'>🎉</div>
-            <h1 style='color:#E2F034;letter-spacing:2px;'>Payment Successful</h1>
-            <h2 style='color:#fff;margin-bottom:40px;font-weight:300;'>$productName</h2>
-            <a href='$googleDriveLink' style='display:inline-block;background:#E2F034;color:#000;padding:18px 40px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:2px;border-radius:50px;'>Access Your Product -></a>
-            <p style='color:#555;font-size:12px;margin-top:30px;'>Save this email for permanent access.</p>
-        </div>";
-
-        send_gmail_smtp($buyerEmail, "Your Product is Ready: $productName", $html);
+        // Send Email + SMS
+        $delivery = deliver_product_to_buyer($buyerEmail, $buyerPhone, $productName, $googleDriveLink, $paymentId);
         
-        // Return fulfillment success
-        echo json_encode(['success' => true, 'productLink' => $googleDriveLink]);
+        echo json_encode([
+            'success' => true,
+            'productLink' => $googleDriveLink,
+            'emailSent' => $delivery['emailSent'],
+            'smsSent' => $delivery['smsSent'],
+        ]);
     } else {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Signature mismatch']);
     }
+    exit;
+}
+
+// ═════════════════════════════════════════════════════════
+// 5. DELIVER PRODUCT (Email + SMS) — DirectCheckoutButton
+// ═════════════════════════════════════════════════════════
+if ($action === 'deliver_product') {
+    $buyerEmail = $input['buyerEmail'] ?? $input['email'] ?? '';
+    $buyerPhone = $input['buyerPhone'] ?? $input['phone'] ?? '';
+    $productName = $input['productName'] ?? '';
+    $googleDriveLink = $input['googleDriveLink'] ?? $input['driveLink'] ?? '';
+    $paymentId = $input['paymentId'] ?? '';
+
+    if (!$buyerEmail && !$buyerPhone) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Email or phone required']);
+        exit;
+    }
+
+    $delivery = deliver_product_to_buyer($buyerEmail, $buyerPhone, $productName, $googleDriveLink, $paymentId);
+
+    echo json_encode([
+        'success' => true,
+        'emailSent' => $delivery['emailSent'],
+        'smsSent' => $delivery['smsSent'],
+    ]);
+    exit;
+}
+
+// ═════════════════════════════════════════════════════════
+// 6. SEND CUSTOM EMAIL (Admin Emailer)
+// ═════════════════════════════════════════════════════════
+if ($action === 'send_custom_email') {
+    $email = $input['email'] ?? '';
+    $subject = $input['subject'] ?? '';
+    $body = $input['body'] ?? '';
+
+    if (!$email || !$subject || !$body) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'email, subject, and body required']);
+        exit;
+    }
+
+    $html = "
+    <div style='background:#0a0a0c;color:#fff;padding:60px 40px;font-family:Helvetica, Arial, sans-serif;'>
+        $body
+        <hr style='border:none;border-top:1px solid #222;margin:40px 0;'>
+        <p style='color:#555;font-size:11px;text-align:center;'>Sent from Vikram Presence Admin</p>
+    </div>";
+
+    $sent = send_gmail_smtp($email, $subject, $html);
+    echo json_encode(['success' => $sent]);
     exit;
 }
 
